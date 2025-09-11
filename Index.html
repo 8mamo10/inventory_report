@@ -44,7 +44,9 @@
       color: #555;
     }
 
-    input[type="text"], select, textarea {
+    input[type="text"],
+    select,
+    textarea {
       width: calc(100% - 20px);
       padding: 10px;
       margin-bottom: 15px;
@@ -54,7 +56,8 @@
       box-sizing: border-box;
     }
 
-    select, textarea {
+    select,
+    textarea {
       width: 100%;
     }
 
@@ -106,7 +109,7 @@
 <body>
   <div class="container">
     <h1>Inventory Report</h1>
-    <form id="attendanceForm">
+    <form id="inventoryForm">
       <label for="name">Your Name:</label>
       <select id="name" name="name" required>
         <option value="">👤 Loading names...</option>
@@ -140,7 +143,7 @@
   </div>
 
   <script>
-    const form = document.getElementById('attendanceForm');
+    const form = document.getElementById('inventoryForm');
     const messageDiv = document.getElementById('message');
     const latitudeInput = document.getElementById('latitude');
     const longitudeInput = document.getElementById('longitude');
@@ -154,21 +157,21 @@
     // Function to load names from server
     function loadNames() {
       google.script.run
-        .withSuccessHandler(function(names) {
+        .withSuccessHandler(function (names) {
           nameSelect.innerHTML = '';
           const defaultOption = document.createElement('option');
           defaultOption.value = '';
           defaultOption.textContent = '👤 Select your name';
           nameSelect.appendChild(defaultOption);
-          
-          names.forEach(function(name) {
+
+          names.forEach(function (name) {
             const option = document.createElement('option');
             option.value = name;
             option.textContent = name;
             nameSelect.appendChild(option);
           });
         })
-        .withFailureHandler(function(error) {
+        .withFailureHandler(function (error) {
           console.error('Failed to load names:', error);
           nameSelect.innerHTML = '<option value="">❌ Failed to load names</option>';
           messageDiv.textContent = 'Failed to load names: ' + error.message;
@@ -180,21 +183,21 @@
     // Function to load areas from server
     function loadAreas() {
       google.script.run
-        .withSuccessHandler(function(areas) {
+        .withSuccessHandler(function (areas) {
           areaSelect.innerHTML = '';
           const defaultOption = document.createElement('option');
           defaultOption.value = '';
           defaultOption.textContent = '🌍 Select area';
           areaSelect.appendChild(defaultOption);
-          
-          areas.forEach(function(area) {
+
+          areas.forEach(function (area) {
             const option = document.createElement('option');
             option.value = area;
             option.textContent = area;
             areaSelect.appendChild(option);
           });
         })
-        .withFailureHandler(function(error) {
+        .withFailureHandler(function (error) {
           console.error('Failed to load areas:', error);
           areaSelect.innerHTML = '<option value="">❌ Failed to load areas</option>';
           messageDiv.textContent = 'Failed to load areas: ' + error.message;
@@ -206,22 +209,22 @@
     // Function to load stores from server
     function loadStores() {
       google.script.run
-        .withSuccessHandler(function(data) {
+        .withSuccessHandler(function (data) {
           storesData = data;
           storeSelect.innerHTML = '';
           const defaultOption = document.createElement('option');
           defaultOption.value = '';
           defaultOption.textContent = '🏪 Select store';
           storeSelect.appendChild(defaultOption);
-          
-          data.store.forEach(function(store) {
+
+          data.store.forEach(function (store) {
             const option = document.createElement('option');
             option.value = store;
             option.textContent = store;
             storeSelect.appendChild(option);
           });
         })
-        .withFailureHandler(function(error) {
+        .withFailureHandler(function (error) {
           console.error('Failed to load stores:', error);
           storeSelect.innerHTML = '<option value="">❌ Failed to load stores</option>';
           messageDiv.textContent = 'Failed to load stores: ' + error.message;
@@ -231,17 +234,17 @@
     }
 
     // Handle store selection to populate branches
-    storeSelect.addEventListener('change', function() {
+    storeSelect.addEventListener('change', function () {
       const selectedStore = storeSelect.value;
       branchSelect.innerHTML = '';
-      
+
       if (selectedStore && storesData.storeMap[selectedStore]) {
         const defaultOption = document.createElement('option');
         defaultOption.value = '';
         defaultOption.textContent = '🏢 Select branch';
         branchSelect.appendChild(defaultOption);
-        
-        storesData.storeMap[selectedStore].forEach(function(branch) {
+
+        storesData.storeMap[selectedStore].forEach(function (branch) {
           const option = document.createElement('option');
           option.value = branch;
           option.textContent = branch;
@@ -256,7 +259,7 @@
     });
 
     // Load names, areas, and stores when page loads
-    window.addEventListener('load', function() {
+    window.addEventListener('load', function () {
       loadNames();
       loadAreas();
       loadStores();
@@ -323,7 +326,7 @@
           params.append(pair[0], pair[1]);
         }
 
-        messageDiv.textContent = 'Registering attendance...';
+        messageDiv.textContent = 'Registering...';
 
         // IMPORTANT: Replace 'YOUR_DEPLOYED_WEB_APP_URL' with your actual GAS Web App URL
         const response = await fetch('YOUR_DEPLOYED_WEB_APP_URL', {
