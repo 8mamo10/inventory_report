@@ -82,7 +82,7 @@ function include(filename) {
 }
 
 // Function to get member list
-function getMembersList() {
+function getMemberList() {
   const spreadSheetId = PropertiesService.getScriptProperties().getProperty('SpreadSheet_ID');
   if (!spreadSheetId) {
     throw new Error("Spreadsheet ID is not set in Script Properties.");
@@ -112,7 +112,7 @@ function getMembersList() {
 }
 
 // Function to get store list
-function getStoresList() {
+function getStoreList() {
   const spreadSheetId = PropertiesService.getScriptProperties().getProperty('SpreadSheet_ID');
   if (!spreadSheetId) {
     throw new Error("Spreadsheet ID is not set in Script Properties.");

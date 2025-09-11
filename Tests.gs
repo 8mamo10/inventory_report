@@ -6,8 +6,8 @@ function runAllTests() {
 
   try {
     testGetAddressFromCoordinates();
-    testGetMembersList();
-    testGetStoresList();
+    testGetMemberList();
+    testGetStoreList();
     testDoPostValidInput();
     testDoPostMissingParameters();
     testDoPostWithStoreAndBranch();
@@ -76,46 +76,46 @@ function testGetAddressFromCoordinates() {
   console.log('✓ getAddressFromCoordinates tests completed');
 }
 
-// Test getMembersList function
-function testGetMembersList() {
-  console.log('Testing getMembersList...');
+// Test getMemberList function
+function testGetMemberList() {
+  console.log('Testing getMemberList...');
 
   try {
-    const members = getMembersList();
-    if (Array.isArray(members)) {
-      console.log('✓ getMembersList returns array');
-      console.log('Members found:', members.length);
+    const member = getMemberList();
+    if (Array.isArray(member)) {
+      console.log('✓ getMemberList returns array');
+      console.log('Member found:', member.length);
     } else {
-      throw new Error('getMembersList should return an array');
+      throw new Error('getMemberList should return an array');
     }
   } catch (error) {
     if (error.message.includes('Spreadsheet ID is not set') ||
-        error.message.includes('Members sheet') ||
+        error.message.includes('Member sheet') ||
         error.message.includes('not found')) {
-      console.log('✓ getMembersList correctly handles missing configuration');
+      console.log('✓ getMemberList correctly handles missing configuration');
     } else {
       throw error;
     }
   }
 }
 
-// Test getStoresList function
-function testGetStoresList() {
-  console.log('Testing getStoresList...');
+// Test getStoreList function
+function testGetStoreList() {
+  console.log('Testing getStoreList...');
 
   try {
-    const storesData = getStoresList();
-    if (storesData && Array.isArray(storesData.stores) && typeof storesData.storeMap === 'object') {
-      console.log('✓ getStoresList returns correct structure');
-      console.log('Stores found:', storesData.stores.length);
+    const storeData = getStoreList();
+    if (storeData && Array.isArray(storeData.store) && typeof storeData.storeMap === 'object') {
+      console.log('✓ getStoreList returns correct structure');
+      console.log('Store found:', storeData.store.length);
     } else {
-      throw new Error('getStoresList should return object with stores array and storeMap');
+      throw new Error('getStoreList should return object with store array and storeMap');
     }
   } catch (error) {
     if (error.message.includes('Spreadsheet ID is not set') ||
-        error.message.includes('Stores sheet') ||
+        error.message.includes('Store sheet') ||
         error.message.includes('not found')) {
-      console.log('✓ getStoresList correctly handles missing configuration');
+      console.log('✓ getStoreList correctly handles missing configuration');
     } else {
       throw error;
     }
@@ -296,11 +296,11 @@ function setupTestProperties() {
   properties.setProperties({
     'SpreadSheet_ID': 'test_spreadsheet_id',
     'Sheet_Name': 'test_sheet',
-    'Members_Sheet_Name': 'test_members',
-    'Stores_Sheet_Name': 'test_stores',
+    'Member_Sheet_Name': 'test_member',
+    'Store_Sheet_Name': 'test_store',
     'Maps_API_KEY': 'test_api_key'
   });
-  console.log('Test properties set up with new store and member sheet names');
+  console.log('Test properties set up with new store and member sheet name');
 }
 
 // Integration test function

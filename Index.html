@@ -187,7 +187,7 @@
           messageDiv.textContent = 'Failed to load names: ' + error.message;
           messageDiv.className = 'error';
         })
-        .getMembersList();
+        .getMemberList();
     }
 
     // Function to load stores from server
@@ -201,7 +201,7 @@
           defaultOption.textContent = '🏪 Select store';
           storeSelect.appendChild(defaultOption);
           
-          data.stores.forEach(function(store) {
+          data.store.forEach(function(store) {
             const option = document.createElement('option');
             option.value = store;
             option.textContent = store;
@@ -214,7 +214,7 @@
           messageDiv.textContent = 'Failed to load stores: ' + error.message;
           messageDiv.className = 'error';
         })
-        .getStoresList();
+        .getStoreList();
     }
 
     // Handle store selection to populate branches
