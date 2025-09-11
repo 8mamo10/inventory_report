@@ -159,7 +159,11 @@ function testDoPostValidInput() {
       longitude: '139.6503',
       store: 'Test Store',
       branch: 'Test Branch',
-      note: 'Test note'
+      note: 'Test note',
+      bottleCount: '10',
+      cartonCount: '5',
+      expirationDate: '2024-12-31',
+      inventoryNote: 'Test inventory note'
     }
   };
 
@@ -167,9 +171,9 @@ function testDoPostValidInput() {
   const mockSheet = {
     appendRow: function(data) {
       console.log('Mock appendRow called with:', data);
-      // Verify updated data structure (now 9 columns)
-      if (data.length !== 9) {
-        throw new Error('Expected 9 columns in data: timestamp, name, area, store, branch, latitude, longitude, address, note');
+      // Verify updated data structure (now 13 columns)
+      if (data.length !== 13) {
+        throw new Error('Expected 13 columns in data: timestamp, name, area, store, branch, latitude, longitude, address, note, bottleCount, cartonCount, expirationDate, inventoryNote');
       }
       if (!(data[0] instanceof Date)) {
         throw new Error('First column should be timestamp');
@@ -199,11 +203,14 @@ function testDoPostMissingParameters() {
 
   const testCases = [
     { parameter: {} }, // All missing
-    { parameter: { name: 'Test' } }, // Missing area, coordinates, store, branch
-    { parameter: { name: 'Test', area: 'Test Area' } }, // Missing coordinates, store, branch
-    { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762' } }, // Missing longitude, store, branch
-    { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503' } }, // Missing store, branch
-    { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503', store: 'Test Store' } } // Missing branch
+    { parameter: { name: 'Test' } }, // Missing area, coordinates, store, branch, inventory fields
+    { parameter: { name: 'Test', area: 'Test Area' } }, // Missing coordinates, store, branch, inventory fields
+    { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762' } }, // Missing longitude, store, branch, inventory fields
+    { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503' } }, // Missing store, branch, inventory fields
+    { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503', store: 'Test Store' } }, // Missing branch, inventory fields
+    { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503', store: 'Test Store', branch: 'Test Branch' } }, // Missing inventory fields
+    { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503', store: 'Test Store', branch: 'Test Branch', bottleCount: '10' } }, // Missing cartonCount, expirationDate
+    { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503', store: 'Test Store', branch: 'Test Branch', bottleCount: '10', cartonCount: '5' } } // Missing expirationDate
   ];
 
   testCases.forEach((testCase, index) => {
@@ -240,7 +247,11 @@ function testDoPostWithStoreAndBranch() {
       longitude: '139.6503',
       store: 'Main Store',
       branch: 'Central Branch',
-      note: 'Integration test note'
+      note: 'Integration test note',
+      bottleCount: '15',
+      cartonCount: '8',
+      expirationDate: '2024-12-31',
+      inventoryNote: 'Integration inventory note'
     }
   };
 
@@ -269,7 +280,11 @@ function testDoPostInvalidCoordinates() {
       longitude: 'invalid',
       store: 'Test Store',
       branch: 'Test Branch',
-      note: 'Test with invalid coordinates'
+      note: 'Test with invalid coordinates',
+      bottleCount: '12',
+      cartonCount: '6',
+      expirationDate: '2024-12-31',
+      inventoryNote: 'Invalid coordinates test'
     }
   };
 
@@ -304,7 +319,7 @@ function testDoGet() {
 }
 
 // Helper function to create test data
-function createTestEvent(name, area, lat, lng, store, branch, note) {
+function createTestEvent(name, area, lat, lng, store, branch, note, bottleCount, cartonCount, expirationDate, inventoryNote) {
   return {
     parameter: {
       name: name || '',
@@ -313,7 +328,11 @@ function createTestEvent(name, area, lat, lng, store, branch, note) {
       longitude: lng || '',
       store: store || 'Test Store',
       branch: branch || 'Test Branch',
-      note: note || 'Test note'
+      note: note || 'Test note',
+      bottleCount: bottleCount || '10',
+      cartonCount: cartonCount || '5',
+      expirationDate: expirationDate || '2024-12-31',
+      inventoryNote: inventoryNote || 'Test inventory note'
     }
   };
 }
@@ -338,7 +357,7 @@ function runIntegrationTest() {
 
   // This would test the full flow with actual Google services
   // Only run this with proper test data and API keys
-  const testEvent = createTestEvent('Integration Test User', 'Integration Area', '35.6762', '139.6503', 'Integration Store', 'Main Branch', 'Integration test note');
+  const testEvent = createTestEvent('Integration Test User', 'Integration Area', '35.6762', '139.6503', 'Integration Store', 'Main Branch', 'Integration test note', '20', '10', '2024-12-31', 'Integration inventory note');
 
   try {
     const result = doPost(testEvent);
@@ -363,7 +382,7 @@ function runPerformanceTest() {
   // Test multiple calls
   for (let i = 0; i < 10; i++) {
     try {
-      const testEvent = createTestEvent(`Test User ${i}`, `Area ${i}`, '35.6762', '139.6503', `Store ${i}`, `Branch ${i}`, `Note ${i}`);
+      const testEvent = createTestEvent(`Test User ${i}`, `Area ${i}`, '35.6762', '139.6503', `Store ${i}`, `Branch ${i}`, `Note ${i}`, `${i * 10}`, `${i * 5}`, '2024-12-31', `Inventory note ${i}`);
       doPost(testEvent);
     } catch (error) {
       // Expected errors due to test environment

@@ -19,8 +19,12 @@ function doPost(e) {
   const store = e.parameter.store || '';
   const branch = e.parameter.branch || '';
   const note = e.parameter.note || '';
+  const bottleCount = e.parameter.bottleCount || 0;
+  const cartonCount = e.parameter.cartonCount || 0;
+  const expirationDate = e.parameter.expirationDate || '';
+  const inventoryNote = e.parameter.inventoryNote || '';
 
-  if (!name || !area || !latitude || !longitude || !store || !branch) {
+  if (!name || !area || !latitude || !longitude || !store || !branch || !bottleCount || !cartonCount || !expirationDate) {
     return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'Missing parameters' }))
       .setMimeType(ContentService.MimeType.JSON);
   }
@@ -41,7 +45,7 @@ function doPost(e) {
   }
 
   // Add data as a new row
-  sheet.appendRow([timestamp, name, area, store, branch, latitude, longitude, address, note]);
+  sheet.appendRow([timestamp, name, area, store, branch, latitude, longitude, address, note, bottleCount, cartonCount, expirationDate, inventoryNote]);
 
   return ContentService.createTextOutput(JSON.stringify({ status: 'success', message: 'Finish registration' }))
     .setMimeType(ContentService.MimeType.JSON);

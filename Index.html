@@ -45,6 +45,8 @@
     }
 
     input[type="text"],
+    input[type="number"],
+    input[type="date"],
     select,
     textarea {
       width: calc(100% - 20px);
@@ -133,6 +135,18 @@
 
       <label for="note">Note:</label>
       <textarea id="note" name="note" placeholder="Enter any additional notes..." rows="3"></textarea><br>
+
+      <label for="bottleCount">Number of Inventory (Bottle):</label>
+      <input type="number" id="bottleCount" name="bottleCount" min="0" placeholder="Enter bottle count" required><br>
+
+      <label for="cartonCount">Number of Inventory (Carton):</label>
+      <input type="number" id="cartonCount" name="cartonCount" min="0" placeholder="Enter carton count" required><br>
+
+      <label for="expirationDate">Expiration Date:</label>
+      <input type="date" id="expirationDate" name="expirationDate" required><br>
+
+      <label for="inventoryNote">Inventory Note:</label>
+      <textarea id="inventoryNote" name="inventoryNote" placeholder="Enter inventory-specific notes..." rows="3"></textarea><br>
 
       <input type="hidden" id="latitude" name="latitude">
       <input type="hidden" id="longitude" name="longitude">
