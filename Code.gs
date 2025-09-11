@@ -81,58 +81,58 @@ function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
-// Function to get members list
+// Function to get member list
 function getMembersList() {
   const spreadSheetId = PropertiesService.getScriptProperties().getProperty('SpreadSheet_ID');
   if (!spreadSheetId) {
     throw new Error("Spreadsheet ID is not set in Script Properties.");
   }
 
-  const membersSheetName = PropertiesService.getScriptProperties().getProperty('Members_Sheet_Name') || 'Members';
+  const memberSheetName = PropertiesService.getScriptProperties().getProperty('Member_Sheet_Name') || 'Member';
 
   const ss = SpreadsheetApp.openById(spreadSheetId);
-  const membersSheet = ss.getSheetByName(membersSheetName);
+  const memberSheet = ss.getSheetByName(memberSheetName);
 
-  if (!membersSheet) {
-    throw new Error(`Members sheet "${membersSheetName}" not found. Please create a sheet named "${membersSheetName}" with names in column A.`);
+  if (!memberSheet) {
+    throw new Error(`Member sheet "${memberSheetName}" not found. Please create a sheet named "${memberSheetName}" with names in column A.`);
   }
 
   // Get data from column with names (column A) starting from row 2
-  const range = membersSheet.getRange('A2:A');
+  const range = memberSheet.getRange('A2:A');
   const values = range.getValues();
 
   // Exclude blank cells and remove duplicates (maintain sheet order)
-  const members = values
+  const member = values
     .map(row => row[0])
     .filter(name => name && name.toString().trim() !== '')
     .map(name => name.toString().trim())
     .filter((name, index, arr) => arr.indexOf(name) === index); // Remove duplicates
 
-  return members;
+  return member;
 }
 
-// Function to get stores list
+// Function to get store list
 function getStoresList() {
   const spreadSheetId = PropertiesService.getScriptProperties().getProperty('SpreadSheet_ID');
   if (!spreadSheetId) {
     throw new Error("Spreadsheet ID is not set in Script Properties.");
   }
 
-  const storesSheetName = PropertiesService.getScriptProperties().getProperty('Stores_Sheet_Name') || 'Stores';
+  const storeSheetName = PropertiesService.getScriptProperties().getProperty('Store_Sheet_Name') || 'Store';
 
   const ss = SpreadsheetApp.openById(spreadSheetId);
-  const storesSheet = ss.getSheetByName(storesSheetName);
+  const storeSheet = ss.getSheetByName(storeSheetName);
 
-  if (!storesSheet) {
-    throw new Error(`Stores sheet "${storesSheetName}" not found.`);
+  if (!storeSheet) {
+    throw new Error(`Store sheet "${storeSheetName}" not found.`);
   }
 
   // Get store names and branch names starting from row 2
-  const range = storesSheet.getRange('A2:B');
+  const range = storeSheet.getRange('A2:B');
   const values = range.getValues();
 
   // Exclude blank rows and organize data
-  const storesData = values
+  const storeData = values
     .filter(row => row[0] && row[0].toString().trim() !== '')
     .map(row => ({
       store: row[0].toString().trim(),
@@ -140,12 +140,12 @@ function getStoresList() {
     }));
 
   // Get store name list (remove duplicates, maintain order)
-  const stores = [];
+  const store = [];
   const storeMap = new Map();
 
-  storesData.forEach(item => {
+  storeData.forEach(item => {
     if (!storeMap.has(item.store)) {
-      stores.push(item.store);
+      store.push(item.store);
       storeMap.set(item.store, []);
     }
     if (item.branch) {
@@ -154,7 +154,7 @@ function getStoresList() {
   });
 
   return {
-    stores: stores,
+    store: store,
     storeMap: Object.fromEntries(storeMap)
   };
 }
