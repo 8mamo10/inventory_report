@@ -295,7 +295,7 @@ function setupTestProperties() {
   const properties = PropertiesService.getScriptProperties();
   properties.setProperties({
     'SpreadSheet_ID': 'test_spreadsheet_id',
-    'Sheet_Name': 'test_sheet',
+    'Record_Sheet_Name': 'test_record_sheet',
     'Member_Sheet_Name': 'test_member',
     'Store_Sheet_Name': 'test_store',
     'Maps_API_KEY': 'test_api_key'

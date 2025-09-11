@@ -6,9 +6,9 @@ function doPost(e) {
   }
 
   // Specify the sheet name
-  const sheetName = PropertiesService.getScriptProperties().getProperty('Sheet_Name');
-  if (!sheetName) {
-    throw new Error("Sheet Name is not set in Script Properties.");
+  const recordSheetName = PropertiesService.getScriptProperties().getProperty('Record_Sheet_Name');
+  if (!recordSheetName) {
+    throw new Error("Record Sheet Name is not set in Script Properties.");
   }
 
   // Get data sent via POST request
@@ -25,7 +25,7 @@ function doPost(e) {
   }
 
   const ss = SpreadsheetApp.openById(spreadSheetId);
-  const sheet = ss.getSheetByName(sheetName);
+  const sheet = ss.getSheetByName(recordSheetName);
 
   // Add timestamp
   const timestamp = new Date();
