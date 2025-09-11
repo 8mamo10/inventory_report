@@ -13,12 +13,14 @@ function doPost(e) {
 
   // Get data sent via POST request
   const name = e.parameter.name;
+  const area = e.parameter.area || '';
   const latitude = e.parameter.latitude;
   const longitude = e.parameter.longitude;
   const store = e.parameter.store || '';
   const branch = e.parameter.branch || '';
+  const note = e.parameter.note || '';
 
-  if (!name || !latitude || !longitude || !store || !branch) {
+  if (!name || !area || !latitude || !longitude || !store || !branch) {
     return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'Missing parameters' }))
       .setMimeType(ContentService.MimeType.JSON);
   }
@@ -39,7 +41,7 @@ function doPost(e) {
   }
 
   // Add data as a new row
-  sheet.appendRow([timestamp, name, store, branch, latitude, longitude, address]);
+  sheet.appendRow([timestamp, name, area, store, branch, latitude, longitude, address, note]);
 
   return ContentService.createTextOutput(JSON.stringify({ status: 'success', message: 'Finish registration' }))
     .setMimeType(ContentService.MimeType.JSON);
@@ -156,4 +158,34 @@ function getStoreList() {
     store: store,
     storeMap: Object.fromEntries(storeMap)
   };
+}
+
+// Function to get area list
+function getAreaList() {
+  const spreadSheetId = PropertiesService.getScriptProperties().getProperty('SpreadSheet_ID');
+  if (!spreadSheetId) {
+    throw new Error("Spreadsheet ID is not set in Script Properties.");
+  }
+
+  const areaSheetName = PropertiesService.getScriptProperties().getProperty('Area_Sheet_Name') || 'Area';
+
+  const ss = SpreadsheetApp.openById(spreadSheetId);
+  const areaSheet = ss.getSheetByName(areaSheetName);
+
+  if (!areaSheet) {
+    throw new Error(`Area sheet "${areaSheetName}" not found. Please create a sheet named "${areaSheetName}" with area names in column A.`);
+  }
+
+  // Get data from column with area names (column A) starting from row 2
+  const range = areaSheet.getRange('A2:A');
+  const values = range.getValues();
+
+  // Exclude blank cells and remove duplicates (maintain sheet order)
+  const area = values
+    .map(row => row[0])
+    .filter(name => name && name.toString().trim() !== '')
+    .map(name => name.toString().trim())
+    .filter((name, index, arr) => arr.indexOf(name) === index); // Remove duplicates
+
+  return area;
 }

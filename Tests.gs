@@ -7,6 +7,7 @@ function runAllTests() {
   try {
     testGetAddressFromCoordinates();
     testGetMemberList();
+    testGetAreaList();
     testGetStoreList();
     testDoPostValidInput();
     testDoPostMissingParameters();
@@ -122,6 +123,29 @@ function testGetStoreList() {
   }
 }
 
+// Test getAreaList function
+function testGetAreaList() {
+  console.log('Testing getAreaList...');
+
+  try {
+    const area = getAreaList();
+    if (Array.isArray(area)) {
+      console.log('✓ getAreaList returns array');
+      console.log('Area found:', area.length);
+    } else {
+      throw new Error('getAreaList should return an array');
+    }
+  } catch (error) {
+    if (error.message.includes('Spreadsheet ID is not set') ||
+        error.message.includes('Area sheet') ||
+        error.message.includes('not found')) {
+      console.log('✓ getAreaList correctly handles missing configuration');
+    } else {
+      throw error;
+    }
+  }
+}
+
 // Test doPost function with valid input
 function testDoPostValidInput() {
   console.log('Testing doPost with valid input...');
@@ -130,10 +154,12 @@ function testDoPostValidInput() {
   const mockEvent = {
     parameter: {
       name: 'Test User',
+      area: 'Test Area',
       latitude: '35.6762',
       longitude: '139.6503',
       store: 'Test Store',
-      branch: 'Test Branch'
+      branch: 'Test Branch',
+      note: 'Test note'
     }
   };
 
@@ -141,9 +167,9 @@ function testDoPostValidInput() {
   const mockSheet = {
     appendRow: function(data) {
       console.log('Mock appendRow called with:', data);
-      // Verify updated data structure (now 7 columns)
-      if (data.length !== 7) {
-        throw new Error('Expected 7 columns in data: timestamp, name, store, branch, latitude, longitude, address');
+      // Verify updated data structure (now 9 columns)
+      if (data.length !== 9) {
+        throw new Error('Expected 9 columns in data: timestamp, name, area, store, branch, latitude, longitude, address, note');
       }
       if (!(data[0] instanceof Date)) {
         throw new Error('First column should be timestamp');
@@ -151,11 +177,14 @@ function testDoPostValidInput() {
       if (data[1] !== 'Test User') {
         throw new Error('Second column should be name');
       }
-      if (data[2] !== 'Test Store') {
-        throw new Error('Third column should be store');
+      if (data[2] !== 'Test Area') {
+        throw new Error('Third column should be area');
       }
-      if (data[3] !== 'Test Branch') {
-        throw new Error('Fourth column should be branch');
+      if (data[3] !== 'Test Store') {
+        throw new Error('Fourth column should be store');
+      }
+      if (data[4] !== 'Test Branch') {
+        throw new Error('Fifth column should be branch');
       }
     }
   };
@@ -170,10 +199,11 @@ function testDoPostMissingParameters() {
 
   const testCases = [
     { parameter: {} }, // All missing
-    { parameter: { name: 'Test' } }, // Missing coordinates, store, branch
-    { parameter: { name: 'Test', latitude: '35.6762' } }, // Missing longitude, store, branch
-    { parameter: { name: 'Test', latitude: '35.6762', longitude: '139.6503' } }, // Missing store, branch
-    { parameter: { name: 'Test', latitude: '35.6762', longitude: '139.6503', store: 'Test Store' } } // Missing branch
+    { parameter: { name: 'Test' } }, // Missing area, coordinates, store, branch
+    { parameter: { name: 'Test', area: 'Test Area' } }, // Missing coordinates, store, branch
+    { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762' } }, // Missing longitude, store, branch
+    { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503' } }, // Missing store, branch
+    { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503', store: 'Test Store' } } // Missing branch
   ];
 
   testCases.forEach((testCase, index) => {
@@ -205,10 +235,12 @@ function testDoPostWithStoreAndBranch() {
   const validEvent = {
     parameter: {
       name: 'Test User',
+      area: 'Main Area',
       latitude: '35.6762',
       longitude: '139.6503',
       store: 'Main Store',
-      branch: 'Central Branch'
+      branch: 'Central Branch',
+      note: 'Integration test note'
     }
   };
 
@@ -232,10 +264,12 @@ function testDoPostInvalidCoordinates() {
   const mockEvent = {
     parameter: {
       name: 'Test User',
+      area: 'Test Area',
       latitude: 'invalid',
       longitude: 'invalid',
       store: 'Test Store',
-      branch: 'Test Branch'
+      branch: 'Test Branch',
+      note: 'Test with invalid coordinates'
     }
   };
 
@@ -270,14 +304,16 @@ function testDoGet() {
 }
 
 // Helper function to create test data
-function createTestEvent(name, lat, lng, store, branch) {
+function createTestEvent(name, area, lat, lng, store, branch, note) {
   return {
     parameter: {
       name: name || '',
+      area: area || 'Test Area',
       latitude: lat || '',
       longitude: lng || '',
       store: store || 'Test Store',
-      branch: branch || 'Test Branch'
+      branch: branch || 'Test Branch',
+      note: note || 'Test note'
     }
   };
 }
@@ -289,6 +325,7 @@ function setupTestProperties() {
     'SpreadSheet_ID': 'test_spreadsheet_id',
     'Record_Sheet_Name': 'test_record_sheet',
     'Member_Sheet_Name': 'test_member',
+    'Area_Sheet_Name': 'test_area',
     'Store_Sheet_Name': 'test_store',
     'Maps_API_KEY': 'test_api_key'
   });
@@ -301,7 +338,7 @@ function runIntegrationTest() {
 
   // This would test the full flow with actual Google services
   // Only run this with proper test data and API keys
-  const testEvent = createTestEvent('Integration Test User', '35.6762', '139.6503', 'Integration Store', 'Main Branch');
+  const testEvent = createTestEvent('Integration Test User', 'Integration Area', '35.6762', '139.6503', 'Integration Store', 'Main Branch', 'Integration test note');
 
   try {
     const result = doPost(testEvent);
@@ -326,7 +363,7 @@ function runPerformanceTest() {
   // Test multiple calls
   for (let i = 0; i < 10; i++) {
     try {
-      const testEvent = createTestEvent(`Test User ${i}`, '35.6762', '139.6503', `Store ${i}`, `Branch ${i}`);
+      const testEvent = createTestEvent(`Test User ${i}`, `Area ${i}`, '35.6762', '139.6503', `Store ${i}`, `Branch ${i}`, `Note ${i}`);
       doPost(testEvent);
     } catch (error) {
       // Expected errors due to test environment

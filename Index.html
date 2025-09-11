@@ -44,7 +44,7 @@
       color: #555;
     }
 
-    input[type="text"], select {
+    input[type="text"], select, textarea {
       width: calc(100% - 20px);
       padding: 10px;
       margin-bottom: 15px;
@@ -54,8 +54,14 @@
       box-sizing: border-box;
     }
 
-    select {
+    select, textarea {
       width: 100%;
+    }
+
+    textarea {
+      resize: vertical;
+      font-family: inherit;
+      min-height: 60px;
     }
 
 
@@ -106,6 +112,11 @@
         <option value="">👤 Loading names...</option>
       </select><br>
 
+      <label for="area">Area:</label>
+      <select id="area" name="area" required>
+        <option value="">🌍 Loading areas...</option>
+      </select><br>
+
 
       <label for="store">Store:</label>
       <select id="store" name="store" required>
@@ -116,6 +127,9 @@
       <select id="branch" name="branch" required>
         <option value="">🏢 Select store first</option>
       </select><br>
+
+      <label for="note">Note:</label>
+      <textarea id="note" name="note" placeholder="Enter any additional notes..." rows="3"></textarea><br>
 
       <input type="hidden" id="latitude" name="latitude">
       <input type="hidden" id="longitude" name="longitude">
@@ -132,6 +146,7 @@
     const longitudeInput = document.getElementById('longitude');
     const submitButton = document.getElementById('submitButton');
     const nameSelect = document.getElementById('name');
+    const areaSelect = document.getElementById('area');
     const storeSelect = document.getElementById('store');
     const branchSelect = document.getElementById('branch');
     let storesData = {};
@@ -160,6 +175,32 @@
           messageDiv.className = 'error';
         })
         .getMemberList();
+    }
+
+    // Function to load areas from server
+    function loadAreas() {
+      google.script.run
+        .withSuccessHandler(function(areas) {
+          areaSelect.innerHTML = '';
+          const defaultOption = document.createElement('option');
+          defaultOption.value = '';
+          defaultOption.textContent = '🌍 Select area';
+          areaSelect.appendChild(defaultOption);
+          
+          areas.forEach(function(area) {
+            const option = document.createElement('option');
+            option.value = area;
+            option.textContent = area;
+            areaSelect.appendChild(option);
+          });
+        })
+        .withFailureHandler(function(error) {
+          console.error('Failed to load areas:', error);
+          areaSelect.innerHTML = '<option value="">❌ Failed to load areas</option>';
+          messageDiv.textContent = 'Failed to load areas: ' + error.message;
+          messageDiv.className = 'error';
+        })
+        .getAreaList();
     }
 
     // Function to load stores from server
@@ -214,9 +255,10 @@
       }
     });
 
-    // Load names and stores when page loads
+    // Load names, areas, and stores when page loads
     window.addEventListener('load', function() {
       loadNames();
+      loadAreas();
       loadStores();
     });
 
