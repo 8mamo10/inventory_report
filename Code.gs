@@ -13,13 +13,12 @@ function doPost(e) {
 
   // Get data sent via POST request
   const name = e.parameter.name;
-  const inOut = e.parameter.inOut;
   const latitude = e.parameter.latitude;
   const longitude = e.parameter.longitude;
   const store = e.parameter.store || '';
   const branch = e.parameter.branch || '';
 
-  if (!name || !inOut || !latitude || !longitude || !store || !branch) {
+  if (!name || !latitude || !longitude || !store || !branch) {
     return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'Missing parameters' }))
       .setMimeType(ContentService.MimeType.JSON);
   }
@@ -40,7 +39,7 @@ function doPost(e) {
   }
 
   // Add data as a new row
-  sheet.appendRow([timestamp, name, inOut, store, branch, latitude, longitude, address]);
+  sheet.appendRow([timestamp, name, store, branch, latitude, longitude, address]);
 
   return ContentService.createTextOutput(JSON.stringify({ status: 'success', message: 'Finish registration' }))
     .setMimeType(ContentService.MimeType.JSON);

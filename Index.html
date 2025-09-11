@@ -5,7 +5,7 @@
   <base target="_top">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-  <title>Attendance Registration</title>
+  <title>Inventory Report</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -58,27 +58,6 @@
       width: 100%;
     }
 
-    .radio-group {
-      margin-bottom: 20px;
-    }
-
-    .radio-group input[type="radio"] {
-      margin-right: 5px;
-    }
-
-    .radio-group .radio-label {
-      display: inline-block;
-      margin-right: 15px;
-      font-weight: normal;
-      /* Override bold for radio labels */
-    }
-
-    .status-label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: bold;
-      color: #555;
-    }
 
     button {
       width: 100%;
@@ -120,20 +99,13 @@
 
 <body>
   <div class="container">
-    <h1>Attendance Registration</h1>
+    <h1>Inventory Report</h1>
     <form id="attendanceForm">
       <label for="name">Your Name:</label>
       <select id="name" name="name" required>
         <option value="">👤 Loading names...</option>
       </select><br>
 
-      <label class="status-label">Status:</label>
-      <div class="radio-group">
-        <input type="radio" id="in" name="inOut" value="IN" required>
-        <label for="in" class="radio-label">IN</label>
-        <input type="radio" id="out" name="inOut" value="OUT">
-        <label for="out" class="radio-label">OUT</label>
-      </div>
 
       <label for="store">Store:</label>
       <select id="store" name="store" required>

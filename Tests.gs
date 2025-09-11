@@ -130,7 +130,6 @@ function testDoPostValidInput() {
   const mockEvent = {
     parameter: {
       name: 'Test User',
-      inOut: 'IN',
       latitude: '35.6762',
       longitude: '139.6503',
       store: 'Test Store',
@@ -142,9 +141,9 @@ function testDoPostValidInput() {
   const mockSheet = {
     appendRow: function(data) {
       console.log('Mock appendRow called with:', data);
-      // Verify updated data structure (now 8 columns)
-      if (data.length !== 8) {
-        throw new Error('Expected 8 columns in data: timestamp, name, inOut, store, branch, latitude, longitude, address');
+      // Verify updated data structure (now 7 columns)
+      if (data.length !== 7) {
+        throw new Error('Expected 7 columns in data: timestamp, name, store, branch, latitude, longitude, address');
       }
       if (!(data[0] instanceof Date)) {
         throw new Error('First column should be timestamp');
@@ -152,14 +151,11 @@ function testDoPostValidInput() {
       if (data[1] !== 'Test User') {
         throw new Error('Second column should be name');
       }
-      if (data[2] !== 'IN') {
-        throw new Error('Third column should be inOut');
+      if (data[2] !== 'Test Store') {
+        throw new Error('Third column should be store');
       }
-      if (data[3] !== 'Test Store') {
-        throw new Error('Fourth column should be store');
-      }
-      if (data[4] !== 'Test Branch') {
-        throw new Error('Fifth column should be branch');
+      if (data[3] !== 'Test Branch') {
+        throw new Error('Fourth column should be branch');
       }
     }
   };
@@ -174,11 +170,10 @@ function testDoPostMissingParameters() {
 
   const testCases = [
     { parameter: {} }, // All missing
-    { parameter: { name: 'Test' } }, // Missing inOut, coordinates, store, branch
-    { parameter: { name: 'Test', inOut: 'IN' } }, // Missing coordinates, store, branch
-    { parameter: { name: 'Test', inOut: 'IN', latitude: '35.6762' } }, // Missing longitude, store, branch
-    { parameter: { name: 'Test', inOut: 'IN', latitude: '35.6762', longitude: '139.6503' } }, // Missing store, branch
-    { parameter: { name: 'Test', inOut: 'IN', latitude: '35.6762', longitude: '139.6503', store: 'Test Store' } } // Missing branch
+    { parameter: { name: 'Test' } }, // Missing coordinates, store, branch
+    { parameter: { name: 'Test', latitude: '35.6762' } }, // Missing longitude, store, branch
+    { parameter: { name: 'Test', latitude: '35.6762', longitude: '139.6503' } }, // Missing store, branch
+    { parameter: { name: 'Test', latitude: '35.6762', longitude: '139.6503', store: 'Test Store' } } // Missing branch
   ];
 
   testCases.forEach((testCase, index) => {
@@ -210,7 +205,6 @@ function testDoPostWithStoreAndBranch() {
   const validEvent = {
     parameter: {
       name: 'Test User',
-      inOut: 'OUT',
       latitude: '35.6762',
       longitude: '139.6503',
       store: 'Main Store',
@@ -238,7 +232,6 @@ function testDoPostInvalidCoordinates() {
   const mockEvent = {
     parameter: {
       name: 'Test User',
-      inOut: 'IN',
       latitude: 'invalid',
       longitude: 'invalid',
       store: 'Test Store',
@@ -277,11 +270,10 @@ function testDoGet() {
 }
 
 // Helper function to create test data
-function createTestEvent(name, inOut, lat, lng, store, branch) {
+function createTestEvent(name, lat, lng, store, branch) {
   return {
     parameter: {
       name: name || '',
-      inOut: inOut || '',
       latitude: lat || '',
       longitude: lng || '',
       store: store || 'Test Store',
@@ -309,7 +301,7 @@ function runIntegrationTest() {
 
   // This would test the full flow with actual Google services
   // Only run this with proper test data and API keys
-  const testEvent = createTestEvent('Integration Test User', 'IN', '35.6762', '139.6503', 'Integration Store', 'Main Branch');
+  const testEvent = createTestEvent('Integration Test User', '35.6762', '139.6503', 'Integration Store', 'Main Branch');
 
   try {
     const result = doPost(testEvent);
@@ -334,7 +326,7 @@ function runPerformanceTest() {
   // Test multiple calls
   for (let i = 0; i < 10; i++) {
     try {
-      const testEvent = createTestEvent(`Test User ${i}`, 'IN', '35.6762', '139.6503', `Store ${i}`, `Branch ${i}`);
+      const testEvent = createTestEvent(`Test User ${i}`, '35.6762', '139.6503', `Store ${i}`, `Branch ${i}`);
       doPost(testEvent);
     } catch (error) {
       // Expected errors due to test environment
