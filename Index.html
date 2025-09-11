@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>Attendance Registration</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f7f6;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    .container {
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 25px;
+      font-size: 1.8em;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #555;
+    }
+
+    input[type="text"], select {
+      width: calc(100% - 20px);
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1em;
+      box-sizing: border-box;
+    }
+
+    select {
+      width: 100%;
+    }
+
+    .radio-group {
+      margin-bottom: 20px;
+    }
+
+    .radio-group input[type="radio"] {
+      margin-right: 5px;
+    }
+
+    .radio-group .radio-label {
+      display: inline-block;
+      margin-right: 15px;
+      font-weight: normal;
+      /* Override bold for radio labels */
+    }
+
+    .status-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #555;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 1.1em;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+
+    #message {
+      margin-top: 20px;
+      text-align: center;
+      font-weight: bold;
+      color: #28a745;
+      /* Success color */
+      min-height: 1.2em;
+      /* Ensure space even when empty */
+    }
+
+    #message.error {
+      color: #dc3545;
+      /* Error color */
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Attendance Registration</h1>
+    <form id="attendanceForm">
+      <label for="name">Your Name:</label>
+      <select id="name" name="name" required>
+        <option value="">👤 Loading names...</option>
+      </select><br>
+
+      <label class="status-label">Status:</label>
+      <div class="radio-group">
+        <input type="radio" id="in" name="inOut" value="IN" required>
+        <label for="in" class="radio-label">IN</label>
+        <input type="radio" id="out" name="inOut" value="OUT">
+        <label for="out" class="radio-label">OUT</label>
+      </div>
+
+      <label for="store">Store:</label>
+      <select id="store" name="store" required>
+        <option value="">🏪 Loading stores...</option>
+      </select><br>
+
+      <label for="branch">Branch:</label>
+      <select id="branch" name="branch" required>
+        <option value="">🏢 Select store first</option>
+      </select><br>
+
+      <input type="hidden" id="latitude" name="latitude">
+      <input type="hidden" id="longitude" name="longitude">
+
+      <button type="submit" id="submitButton">Register</button>
+    </form>
+    <div id="message"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('attendanceForm');
+    const messageDiv = document.getElementById('message');
+    const latitudeInput = document.getElementById('latitude');
+    const longitudeInput = document.getElementById('longitude');
+    const submitButton = document.getElementById('submitButton');
+    const nameSelect = document.getElementById('name');
+    const storeSelect = document.getElementById('store');
+    const branchSelect = document.getElementById('branch');
+    let storesData = {};
+
+    // Function to load names from server
+    function loadNames() {
+      google.script.run
+        .withSuccessHandler(function(names) {
+          nameSelect.innerHTML = '';
+          const defaultOption = document.createElement('option');
+          defaultOption.value = '';
+          defaultOption.textContent = '👤 Select your name';
+          nameSelect.appendChild(defaultOption);
+          
+          names.forEach(function(name) {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            nameSelect.appendChild(option);
+          });
+        })
+        .withFailureHandler(function(error) {
+          console.error('Failed to load names:', error);
+          nameSelect.innerHTML = '<option value="">❌ Failed to load names</option>';
+          messageDiv.textContent = 'Failed to load names: ' + error.message;
+          messageDiv.className = 'error';
+        })
+        .getMembersList();
+    }
+
+    // Function to load stores from server
+    function loadStores() {
+      google.script.run
+        .withSuccessHandler(function(data) {
+          storesData = data;
+          storeSelect.innerHTML = '';
+          const defaultOption = document.createElement('option');
+          defaultOption.value = '';
+          defaultOption.textContent = '🏪 Select store';
+          storeSelect.appendChild(defaultOption);
+          
+          data.stores.forEach(function(store) {
+            const option = document.createElement('option');
+            option.value = store;
+            option.textContent = store;
+            storeSelect.appendChild(option);
+          });
+        })
+        .withFailureHandler(function(error) {
+          console.error('Failed to load stores:', error);
+          storeSelect.innerHTML = '<option value="">❌ Failed to load stores</option>';
+          messageDiv.textContent = 'Failed to load stores: ' + error.message;
+          messageDiv.className = 'error';
+        })
+        .getStoresList();
+    }
+
+    // Handle store selection to populate branches
+    storeSelect.addEventListener('change', function() {
+      const selectedStore = storeSelect.value;
+      branchSelect.innerHTML = '';
+      
+      if (selectedStore && storesData.storeMap[selectedStore]) {
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = '🏢 Select branch';
+        branchSelect.appendChild(defaultOption);
+        
+        storesData.storeMap[selectedStore].forEach(function(branch) {
+          const option = document.createElement('option');
+          option.value = branch;
+          option.textContent = branch;
+          branchSelect.appendChild(option);
+        });
+      } else {
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = '🏢 Select store first';
+        branchSelect.appendChild(defaultOption);
+      }
+    });
+
+    // Load names and stores when page loads
+    window.addEventListener('load', function() {
+      loadNames();
+      loadStores();
+    });
+
+    // Function to get geolocation
+    function getLocation() {
+      return new Promise((resolve, reject) => {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              latitudeInput.value = position.coords.latitude;
+              longitudeInput.value = position.coords.longitude;
+              resolve();
+            },
+            (error) => {
+              console.error("Failed to get location:", error);
+              let errorMessage = 'Failed to get location.';
+              switch (error.code) {
+                case error.PERMISSION_DENIED:
+                  errorMessage = 'Location access denied. Please allow location access in your browser settings.';
+                  break;
+                case error.POSITION_UNAVAILABLE:
+                  errorMessage = 'Location information is unavailable.';
+                  break;
+                case error.TIMEOUT:
+                  errorMessage = 'The request to get user location timed out.';
+                  break;
+                case error.UNKNOWN_ERROR:
+                  errorMessage = 'An unknown error occurred while getting location.';
+                  break;
+              }
+              messageDiv.textContent = errorMessage;
+              messageDiv.className = 'error'; // Add error class for styling
+              reject(error);
+            },
+            {
+              enableHighAccuracy: true,
+              timeout: 10000, // Increased timeout for potentially slower mobile connections
+              maximumAge: 0
+            }
+          );
+        } else {
+          messageDiv.textContent = 'Your browser does not support geolocation.';
+          messageDiv.className = 'error';
+          reject(new Error("Geolocation not supported"));
+        }
+      });
+    }
+
+    form.addEventListener('submit', async function (event) {
+      event.preventDefault(); // Prevent default form submission
+
+      submitButton.disabled = true; // Disable button to prevent multiple submissions
+      messageDiv.textContent = 'Getting location...';
+      messageDiv.className = ''; // Reset class
+
+      try {
+        await getLocation(); // Get location first
+
+        const formData = new FormData(form);
+        const params = new URLSearchParams();
+        for (const pair of formData) {
+          params.append(pair[0], pair[1]);
+        }
+
+        messageDiv.textContent = 'Registering attendance...';
+
+        // IMPORTANT: Replace 'YOUR_DEPLOYED_WEB_APP_URL' with your actual GAS Web App URL
+        const response = await fetch('YOUR_DEPLOYED_WEB_APP_URL', {
+          method: 'POST',
+          body: params,
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        });
+
+        const data = await response.json();
+        if (data.status === 'success') {
+          messageDiv.textContent = data.message;
+          messageDiv.className = ''; // Success class is default (no error class)
+          form.reset(); // Reset form
+        } else {
+          messageDiv.textContent = 'Error: ' + data.message;
+          messageDiv.className = 'error'; // Add error class
+        }
+      } catch (error) {
+        console.error('Error during registration process:', error);
+        if (messageDiv.textContent === 'Getting location...') { // Only if location failed or prior
+          messageDiv.textContent = messageDiv.textContent + ' Please try again.'; // Append more info if needed
+        } else {
+          messageDiv.textContent = 'An error occurred during registration. Please try again.';
+        }
+        messageDiv.className = 'error';
+      } finally {
+        submitButton.disabled = false; // Re-enable button
+      }
+    });
+  </script>
+</body>
+
+</html>
