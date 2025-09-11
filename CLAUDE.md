@@ -29,7 +29,7 @@ This is a Google Apps Script (GAS) based attendance tracking system that records
 ### Google Sheets Structure
 
 - **Main Sheet**: Attendance records (8 columns as above)
-- **Members Sheet**: Employee names in column A (starting row 2)
+- **Member Sheet**: Employee names in column B (starting row 2)
 - **Stores Sheet**: Store names (column A) and branch names (column B) starting row 2
 
 ## Development Commands

@@ -95,11 +95,11 @@ function getMemberList() {
   const memberSheet = ss.getSheetByName(memberSheetName);
 
   if (!memberSheet) {
-    throw new Error(`Member sheet "${memberSheetName}" not found. Please create a sheet named "${memberSheetName}" with names in column A.`);
+    throw new Error(`Member sheet "${memberSheetName}" not found. Please create a sheet named "${memberSheetName}" with names in column B.`);
   }
 
-  // Get data from column with names (column A) starting from row 2
-  const range = memberSheet.getRange('A2:A');
+  // Get data from column with names (column B) starting from row 2
+  const range = memberSheet.getRange('B2:B');
   const values = range.getValues();
 
   // Exclude blank cells and remove duplicates (maintain sheet order)
