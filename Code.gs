@@ -132,8 +132,8 @@ function getStoreList() {
     throw new Error(`Store sheet "${storeSheetName}" not found.`);
   }
 
-  // Get store names and branch names starting from row 2
-  const range = storeSheet.getRange('A2:B');
+  // Get store names, areas, and branch names starting from row 2
+  const range = storeSheet.getRange('A2:C');
   const values = range.getValues();
 
   // Exclude blank rows and organize data
@@ -141,17 +141,20 @@ function getStoreList() {
     .filter(row => row[0] && row[0].toString().trim() !== '')
     .map(row => ({
       store: row[0].toString().trim(),
-      branch: row[1] ? row[1].toString().trim() : ''
+      area: row[1] ? row[1].toString().trim() : '',
+      branch: row[2] ? row[2].toString().trim() : ''
     }));
 
   // Get store name list (remove duplicates, maintain order)
   const store = [];
   const storeMap = new Map();
+  const storeAreaMap = new Map();
 
   storeData.forEach(item => {
     if (!storeMap.has(item.store)) {
       store.push(item.store);
       storeMap.set(item.store, []);
+      storeAreaMap.set(item.store, item.area);
     }
     if (item.branch) {
       storeMap.get(item.store).push(item.branch);
@@ -160,7 +163,8 @@ function getStoreList() {
 
   return {
     store: store,
-    storeMap: Object.fromEntries(storeMap)
+    storeMap: Object.fromEntries(storeMap),
+    storeAreaMap: Object.fromEntries(storeAreaMap)
   };
 }
 

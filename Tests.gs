@@ -106,11 +106,11 @@ function testGetStoreList() {
 
   try {
     const storeData = getStoreList();
-    if (storeData && Array.isArray(storeData.store) && typeof storeData.storeMap === 'object') {
+    if (storeData && Array.isArray(storeData.store) && typeof storeData.storeMap === 'object' && typeof storeData.storeAreaMap === 'object') {
       console.log('✓ getStoreList returns correct structure');
       console.log('Store found:', storeData.store.length);
     } else {
-      throw new Error('getStoreList should return object with store array and storeMap');
+      throw new Error('getStoreList should return object with store array, storeMap, and storeAreaMap');
     }
   } catch (error) {
     if (error.message.includes('Spreadsheet ID is not set') ||

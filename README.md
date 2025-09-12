@@ -61,7 +61,8 @@ Main data storage with 13 columns:
 
 ### Store Sheet
 - **Column A**: Store names (starting from row 2)
-- **Column B**: Branch names (starting from row 2)
+- **Column B**: Area names (starting from row 2)
+- **Column C**: Branch names (starting from row 2)
 
 ## Setup Instructions
 

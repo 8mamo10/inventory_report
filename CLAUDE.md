@@ -31,7 +31,7 @@ This is a Google Apps Script (GAS) based inventory reporting system that records
 - **Record Sheet**: Inventory records (13 columns as above)
 - **Member Sheet**: Employee names in column B (starting row 2)
 - **Area Sheet**: Area names in column A (starting row 2)
-- **Store Sheet**: Store names (column A) and branch names (column B) starting row 2
+- **Store Sheet**: Store names (column A), area names (column B), and branch names (column C) starting row 2
 
 ## Development Commands
 

@@ -247,12 +247,17 @@
         .getStoreList();
     }
 
-    // Handle store selection to populate branches
+    // Handle store selection to populate branches and area
     storeSelect.addEventListener('change', function () {
       const selectedStore = storeSelect.value;
       branchSelect.innerHTML = '';
 
       if (selectedStore && storesData.storeMap[selectedStore]) {
+        // Auto-populate area if store has associated area
+        if (storesData.storeAreaMap && storesData.storeAreaMap[selectedStore]) {
+          areaSelect.value = storesData.storeAreaMap[selectedStore];
+        }
+
         const defaultOption = document.createElement('option');
         defaultOption.value = '';
         defaultOption.textContent = '🏢 Select branch';
