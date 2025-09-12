@@ -69,6 +69,80 @@
       min-height: 60px;
     }
 
+    /* Product Section Styles */
+    .product-section {
+      margin-top: 30px;
+      border-top: 2px solid #e0e0e0;
+      padding-top: 20px;
+    }
+
+    .product-section h2 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+
+    .product-tabs {
+      width: 100%;
+    }
+
+    .tab-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .tab-button {
+      padding: 8px 12px;
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-bottom: none;
+      cursor: pointer;
+      font-size: 0.9em;
+      border-radius: 4px 4px 0 0;
+      transition: background-color 0.2s;
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .tab-button:hover {
+      background-color: #e9ecef;
+    }
+
+    .tab-button.active {
+      background-color: #007bff;
+      color: white;
+      border-color: #007bff;
+    }
+
+    .tab-content {
+      padding: 15px;
+      border: 1px solid #e0e0e0;
+      border-radius: 0 4px 4px 4px;
+      background-color: #fff;
+    }
+
+    .product-form {
+      display: none;
+    }
+
+    .product-form.active {
+      display: block;
+    }
+
+    .product-form label {
+      margin-bottom: 5px;
+      font-size: 0.9em;
+    }
+
+    .product-form input {
+      margin-bottom: 10px;
+      padding: 8px;
+      font-size: 0.9em;
+    }
+
 
     button {
       width: 100%;
@@ -154,6 +228,19 @@
       <button type="submit" id="submitButton">Register</button>
     </form>
     <div id="message"></div>
+    
+    <!-- Product Inventory Section -->
+    <div id="productSection" class="product-section">
+      <h2>Product Inventory</h2>
+      <div id="productTabs" class="product-tabs">
+        <div id="productTabButtons" class="tab-buttons">
+          <!-- Product tabs will be dynamically loaded -->
+        </div>
+        <div id="productTabContent" class="tab-content">
+          <!-- Product content will be dynamically loaded -->
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -167,6 +254,8 @@
     const storeSelect = document.getElementById('store');
     const branchSelect = document.getElementById('branch');
     let storesData = {};
+    let productsData = [];
+    let activeProductTab = null;
 
     // Function to load names from server
     function loadNames() {
@@ -218,6 +307,20 @@
           messageDiv.className = 'error';
         })
         .getAreaList();
+    }
+
+    // Function to load products from server
+    function loadProducts() {
+      google.script.run
+        .withSuccessHandler(function(products) {
+          productsData = products;
+          createProductTabs();
+        })
+        .withFailureHandler(function(error) {
+          console.error('Failed to load products:', error);
+          document.getElementById('productSection').style.display = 'none';
+        })
+        .getProductList();
     }
 
     // Function to load stores from server
@@ -342,11 +445,73 @@
       populateBranchesByAreaAndStore();
     });
 
-    // Load names, areas, and stores when page loads
+    // Function to create product tabs
+    function createProductTabs() {
+      const tabButtons = document.getElementById('productTabButtons');
+      const tabContent = document.getElementById('productTabContent');
+      
+      tabButtons.innerHTML = '';
+      tabContent.innerHTML = '';
+      
+      if (productsData.length === 0) {
+        document.getElementById('productSection').style.display = 'none';
+        return;
+      }
+      
+      productsData.forEach((product, index) => {
+        // Create tab button
+        const tabButton = document.createElement('div');
+        tabButton.className = 'tab-button';
+        tabButton.textContent = product.name;
+        tabButton.onclick = () => switchProductTab(index);
+        tabButtons.appendChild(tabButton);
+        
+        // Create tab content
+        const productForm = document.createElement('div');
+        productForm.className = 'product-form';
+        productForm.id = `product-form-${index}`;
+        productForm.innerHTML = `
+          <h3>${product.type} - ${product.name}</h3>
+          <label for="product-bottle-${index}">Bottle Count:</label>
+          <input type="number" id="product-bottle-${index}" min="0" placeholder="0">
+          
+          <label for="product-carton-${index}">Carton Count:</label>
+          <input type="number" id="product-carton-${index}" min="0" placeholder="0">
+          
+          <label for="product-expiry-${index}">Expiration Date:</label>
+          <input type="date" id="product-expiry-${index}">
+          
+          <label for="product-note-${index}">Product Note:</label>
+          <textarea id="product-note-${index}" rows="2" placeholder="Product-specific notes..."></textarea>
+        `;
+        tabContent.appendChild(productForm);
+      });
+      
+      // Activate first tab
+      if (productsData.length > 0) {
+        switchProductTab(0);
+      }
+    }
+    
+    // Function to switch product tabs
+    function switchProductTab(index) {
+      // Remove active class from all buttons and forms
+      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.product-form').forEach(form => form.classList.remove('active'));
+      
+      // Add active class to selected button and form
+      document.querySelectorAll('.tab-button')[index].classList.add('active');
+      document.getElementById(`product-form-${index}`).classList.add('active');
+      
+      activeProductTab = index;
+    }
+    
+    // Load names, areas, stores, and products when page loads
     window.addEventListener('load', function () {
       loadNames();
       loadAreas();
       loadStores();
+      loadProducts();
       
       // Initially disable store and branch selects
       storeSelect.disabled = true;
@@ -398,6 +563,32 @@
       });
     }
 
+    // Function to collect product inventory data
+    function collectProductData() {
+      const productInventory = [];
+      
+      productsData.forEach((product, index) => {
+        const bottleCount = document.getElementById(`product-bottle-${index}`).value || '0';
+        const cartonCount = document.getElementById(`product-carton-${index}`).value || '0';
+        const expiryDate = document.getElementById(`product-expiry-${index}`).value || '';
+        const productNote = document.getElementById(`product-note-${index}`).value || '';
+        
+        // Only include products with inventory data
+        if (bottleCount !== '0' || cartonCount !== '0' || expiryDate || productNote) {
+          productInventory.push({
+            type: product.type,
+            name: product.name,
+            bottleCount: bottleCount,
+            cartonCount: cartonCount,
+            expirationDate: expiryDate,
+            note: productNote
+          });
+        }
+      });
+      
+      return productInventory;
+    }
+
     form.addEventListener('submit', async function (event) {
       event.preventDefault(); // Prevent default form submission
 
@@ -413,6 +604,10 @@
         for (const pair of formData) {
           params.append(pair[0], pair[1]);
         }
+        
+        // Add product inventory data
+        const productInventory = collectProductData();
+        params.append('productInventory', JSON.stringify(productInventory));
 
         messageDiv.textContent = 'Registering...';
 

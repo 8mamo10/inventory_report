@@ -9,6 +9,7 @@ function runAllTests() {
     testGetMemberList();
     testGetAreaList();
     testGetStoreList();
+    testGetProductList();
     testDoPostValidInput();
     testDoPostMissingParameters();
     testDoPostWithStoreAndBranch();
@@ -146,6 +147,39 @@ function testGetAreaList() {
   }
 }
 
+// Test getProductList function
+function testGetProductList() {
+  console.log('Testing getProductList...');
+
+  try {
+    const products = getProductList();
+    if (Array.isArray(products)) {
+      console.log('✓ getProductList returns array');
+      console.log('Products found:', products.length);
+      
+      // Check product structure if products exist
+      if (products.length > 0) {
+        const product = products[0];
+        if (product.type && product.name) {
+          console.log('✓ Product has correct structure (type and name)');
+        } else {
+          throw new Error('Product should have type and name properties');
+        }
+      }
+    } else {
+      throw new Error('getProductList should return an array');
+    }
+  } catch (error) {
+    if (error.message.includes('Spreadsheet ID is not set') ||
+        error.message.includes('Product sheet') ||
+        error.message.includes('not found')) {
+      console.log('✓ getProductList correctly handles missing configuration');
+    } else {
+      throw error;
+    }
+  }
+}
+
 // Test doPost function with valid input
 function testDoPostValidInput() {
   console.log('Testing doPost with valid input...');
@@ -163,7 +197,8 @@ function testDoPostValidInput() {
       bottleCount: '10',
       cartonCount: '5',
       expirationDate: '2024-12-31',
-      inventoryNote: 'Test inventory note'
+      inventoryNote: 'Test inventory note',
+      productInventory: JSON.stringify([{type: 'Test Type', name: 'Test Product', bottleCount: '5', cartonCount: '2', expirationDate: '2024-12-31', note: 'Test product note'}])
     }
   };
 
@@ -171,9 +206,9 @@ function testDoPostValidInput() {
   const mockSheet = {
     appendRow: function(data) {
       console.log('Mock appendRow called with:', data);
-      // Verify updated data structure (now 13 columns)
-      if (data.length !== 13) {
-        throw new Error('Expected 13 columns in data: timestamp, name, area, store, branch, latitude, longitude, address, note, bottleCount, cartonCount, expirationDate, inventoryNote');
+      // Verify updated data structure (now 14 columns)
+      if (data.length !== 14) {
+        throw new Error('Expected 14 columns in data: timestamp, name, area, store, branch, latitude, longitude, address, note, bottleCount, cartonCount, expirationDate, inventoryNote, productInventory');
       }
       if (!(data[0] instanceof Date)) {
         throw new Error('First column should be timestamp');
@@ -346,6 +381,7 @@ function setupTestProperties() {
     'Member_Sheet_Name': 'test_member',
     'Area_Sheet_Name': 'test_area',
     'Store_Sheet_Name': 'test_store',
+    'Product_Sheet_Name': 'test_product',
     'Maps_API_KEY': 'test_api_key'
   });
   console.log('Test properties set up with new store and member sheet name');

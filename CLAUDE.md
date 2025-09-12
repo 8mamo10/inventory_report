@@ -28,10 +28,11 @@ This is a Google Apps Script (GAS) based inventory reporting system that records
 
 ### Google Sheets Structure
 
-- **Record Sheet**: Inventory records (13 columns as above)
+- **Record Sheet**: Inventory records (14 columns as above)
 - **Member Sheet**: Employee names in column B (starting row 2)
 - **Area Sheet**: Area names in column A (starting row 2)
 - **Store Sheet**: Store names (column A), area names (column B), and branch names (column C) starting row 2
+- **Product Sheet**: Product types (column A) and product names (column B) starting row 2
 
 ## Development Commands
 
@@ -45,6 +46,7 @@ testGetAddressFromCoordinates()
 testGetMemberList() 
 testGetAreaList()
 testGetStoreList()
+testGetProductList()
 testDoPostValidInput()
 
 // Setup test configuration
@@ -61,6 +63,7 @@ Record_Sheet_Name: Main inventory records sheet name
 Member_Sheet_Name: Sheet containing employee names (default: 'Member')
 Area_Sheet_Name: Sheet containing area names (default: 'Area')
 Store_Sheet_Name: Sheet containing store/branch data (default: 'Store')
+Product_Sheet_Name: Sheet containing product data (default: 'Product')
 Maps_API_KEY: Google Maps Geocoding API key
 ```
 
@@ -79,7 +82,7 @@ Maps_API_KEY: Google Maps Geocoding API key
 The test suite covers:
 - API integration with proper mocking
 - Parameter validation and error cases
-- Data structure integrity (13-column format)
+- Data structure integrity (14-column format)
 - Configuration validation
 - Performance benchmarking
 
@@ -87,7 +90,7 @@ Tests are designed to work in both configured and unconfigured environments.
 
 ## Current Data Structure
 
-The Record sheet contains 13 columns:
+The Record sheet contains 14 columns:
 1. **Timestamp**: Automatic timestamp
 2. **Name**: User name from Member sheet (column B)
 3. **Area**: Selected area from Area sheet (column A)
@@ -101,3 +104,13 @@ The Record sheet contains 13 columns:
 11. **Carton Count**: Number of inventory cartons (required)
 12. **Expiration Date**: Product expiration date (required, date format)
 13. **Inventory Note**: Inventory-specific notes (optional free text)
+14. **Product Inventory**: JSON data containing individual product inventory details
+
+## Product Management
+
+The system includes a comprehensive product inventory feature:
+- **Product Sheet**: Manages available products with types and names
+- **Tabbed Interface**: Product tabs displayed at bottom of form (up to ~10 products)
+- **Individual Tracking**: Each product can have separate bottle/carton counts and expiration dates
+- **Dual Records**: Creates both summary and product-specific records
+- **JSON Storage**: Product data stored as JSON in column 14 for complex queries

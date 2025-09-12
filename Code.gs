@@ -23,6 +23,16 @@ function doPost(e) {
   const cartonCount = e.parameter.cartonCount || 0;
   const expirationDate = e.parameter.expirationDate || '';
   const inventoryNote = e.parameter.inventoryNote || '';
+  const productInventoryJSON = e.parameter.productInventory || '[]';
+  
+  // Parse product inventory data
+  let productInventory = [];
+  try {
+    productInventory = JSON.parse(productInventoryJSON);
+  } catch (err) {
+    console.error('Failed to parse product inventory:', err);
+    productInventory = [];
+  }
 
   if (!name || !area || !latitude || !longitude || !store || !branch || !bottleCount || !cartonCount || !expirationDate) {
     return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'Missing parameters' }))
@@ -44,8 +54,31 @@ function doPost(e) {
     address = 'Failed to fetch address';
   }
 
-  // Add data as a new row
-  sheet.appendRow([timestamp, name, area, store, branch, latitude, longitude, address, note, bottleCount, cartonCount, expirationDate, inventoryNote]);
+  // Add main record as a new row
+  sheet.appendRow([timestamp, name, area, store, branch, latitude, longitude, address, note, bottleCount, cartonCount, expirationDate, inventoryNote, JSON.stringify(productInventory)]);
+  
+  // If there are product inventories, add them as separate records
+  if (productInventory && productInventory.length > 0) {
+    productInventory.forEach(product => {
+      // Add product-specific record
+      sheet.appendRow([
+        timestamp, 
+        name, 
+        area, 
+        store, 
+        branch, 
+        latitude, 
+        longitude, 
+        address, 
+        product.note || '', 
+        product.bottleCount || 0, 
+        product.cartonCount || 0, 
+        product.expirationDate || '', 
+        `PRODUCT: ${product.type} - ${product.name}`,
+        JSON.stringify([product])
+      ]);
+    });
+  }
 
   return ContentService.createTextOutput(JSON.stringify({ status: 'success', message: 'Finish registration' }))
     .setMimeType(ContentService.MimeType.JSON);
@@ -227,4 +260,35 @@ function getAreaList() {
     .filter((name, index, arr) => arr.indexOf(name) === index); // Remove duplicates
 
   return area;
+}
+
+// Function to get product list
+function getProductList() {
+  const spreadSheetId = PropertiesService.getScriptProperties().getProperty('SpreadSheet_ID');
+  if (!spreadSheetId) {
+    throw new Error("Spreadsheet ID is not set in Script Properties.");
+  }
+
+  const productSheetName = PropertiesService.getScriptProperties().getProperty('Product_Sheet_Name') || 'Product';
+
+  const ss = SpreadsheetApp.openById(spreadSheetId);
+  const productSheet = ss.getSheetByName(productSheetName);
+
+  if (!productSheet) {
+    throw new Error(`Product sheet "${productSheetName}" not found. Please create a sheet named "${productSheetName}" with product types in column A and product names in column B.`);
+  }
+
+  // Get data from columns with types (column A) and names (column B) starting from row 2
+  const range = productSheet.getRange('A2:B');
+  const values = range.getValues();
+
+  // Exclude blank rows and organize data
+  const products = values
+    .filter(row => row[0] && row[0].toString().trim() !== '' && row[1] && row[1].toString().trim() !== '')
+    .map(row => ({
+      type: row[0].toString().trim(),
+      name: row[1].toString().trim()
+    }));
+
+  return products;
 }

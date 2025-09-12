@@ -28,6 +28,7 @@ The system records the following information:
 ### Optional Fields
 - **Note**: General notes
 - **Inventory Note**: Inventory-specific notes
+- **Product Inventory**: Individual product inventory data with counts and expiration dates
 
 ### Automatic Fields
 - **Timestamp**: Automatic timestamp
@@ -38,7 +39,7 @@ The system records the following information:
 The system requires the following sheets in your Google Spreadsheet:
 
 ### Record Sheet
-Main data storage with 13 columns:
+Main data storage with 14 columns:
 1. Timestamp
 2. Name
 3. Area
@@ -52,6 +53,7 @@ Main data storage with 13 columns:
 11. Carton Count
 12. Expiration Date
 13. Inventory Note
+14. Product Inventory (JSON data)
 
 ### Member Sheet
 - **Column B**: Member names (starting from row 2)
@@ -64,6 +66,10 @@ Main data storage with 13 columns:
 - **Column B**: Area names (starting from row 2)
 - **Column C**: Branch names (starting from row 2)
 
+### Product Sheet
+- **Column A**: Product types (starting from row 2)
+- **Column B**: Product names (starting from row 2)
+
 ## Setup Instructions
 
 ### 1. Google Apps Script Setup
@@ -74,8 +80,8 @@ Main data storage with 13 columns:
 
 ### 2. Google Sheets Setup
 1. Create a new Google Spreadsheet
-2. Create the required sheets: Record, Member, Area, Store
-3. Populate the Member, Area, and Store sheets with your data
+2. Create the required sheets: Record, Member, Area, Store, Product
+3. Populate the Member, Area, Store, and Product sheets with your data
 4. Note the spreadsheet ID from the URL
 
 ### 3. Script Properties Configuration
@@ -87,6 +93,7 @@ Record_Sheet_Name: Name of your main record sheet
 Member_Sheet_Name: Name of your member sheet (default: 'Member')
 Area_Sheet_Name: Name of your area sheet (default: 'Area')
 Store_Sheet_Name: Name of your store sheet (default: 'Store')
+Product_Sheet_Name: Name of your product sheet (default: 'Product')
 Maps_API_KEY: Your Google Maps Geocoding API key
 ```
 
@@ -111,6 +118,7 @@ Maps_API_KEY: Your Google Maps Geocoding API key
    - Enter bottle and carton counts
    - Set expiration date using the calendar picker
    - Add notes if needed
+   - Use product tabs to enter inventory for specific products
 3. Click "Register" to submit the data
 4. The system will automatically capture your location and save all data to the spreadsheet
 
