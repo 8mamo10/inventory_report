@@ -206,8 +206,8 @@ function testDoPostValidInput() {
       if (data.length !== 15) {
         throw new Error('Expected 15 columns in data: timestamp, name, area, store, branch, latitude, longitude, address, note, productType, productName, bottleCount, cartonCount, expirationDate, productNote');
       }
-      if (!(data[0] instanceof Date)) {
-        throw new Error('First column should be timestamp');
+      if (typeof data[0] !== 'string' || !data[0].match(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}$/)) {
+        throw new Error('First column should be formatted timestamp (DD/MM/YYYY HH:MM:SS)');
       }
       if (data[1] !== 'Test User') {
         throw new Error('Second column should be name');
