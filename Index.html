@@ -247,34 +247,99 @@
         .getStoreList();
     }
 
-    // Handle store selection to populate branches and area
-    storeSelect.addEventListener('change', function () {
+    // Function to populate stores based on selected area
+    function populateStoresByArea() {
+      const selectedArea = areaSelect.value;
+      storeSelect.innerHTML = '';
+      branchSelect.innerHTML = '';
+
+      if (selectedArea && storesData.areaStoreMap && storesData.areaStoreMap[selectedArea]) {
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = '🏢 Select store';
+        storeSelect.appendChild(defaultOption);
+
+        storesData.areaStoreMap[selectedArea].forEach(function (store) {
+          const option = document.createElement('option');
+          option.value = store;
+          option.textContent = store;
+          storeSelect.appendChild(option);
+        });
+        
+        // Enable store select
+        storeSelect.disabled = false;
+      } else {
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = '🏢 Select area first';
+        storeSelect.appendChild(defaultOption);
+        
+        // Disable store select until area is chosen
+        storeSelect.disabled = true;
+      }
+      
+      // Reset branch dropdown
+      const branchDefaultOption = document.createElement('option');
+      branchDefaultOption.value = '';
+      branchDefaultOption.textContent = '🏢 Select store first';
+      branchSelect.appendChild(branchDefaultOption);
+      branchSelect.disabled = true;
+    }
+
+    // Function to populate branches based on selected area and store
+    function populateBranchesByAreaAndStore() {
+      const selectedArea = areaSelect.value;
       const selectedStore = storeSelect.value;
       branchSelect.innerHTML = '';
 
-      if (selectedStore && storesData.storeMap[selectedStore]) {
-        // Auto-populate area if store has associated area
-        if (storesData.storeAreaMap && storesData.storeAreaMap[selectedStore]) {
-          areaSelect.value = storesData.storeAreaMap[selectedStore];
+      if (selectedArea && selectedStore && storesData.areaStoreBranchMap) {
+        const areaStoreKey = `${selectedArea}|${selectedStore}`;
+        if (storesData.areaStoreBranchMap[areaStoreKey]) {
+          const defaultOption = document.createElement('option');
+          defaultOption.value = '';
+          defaultOption.textContent = '🏢 Select branch';
+          branchSelect.appendChild(defaultOption);
+
+          storesData.areaStoreBranchMap[areaStoreKey].forEach(function (branch) {
+            const option = document.createElement('option');
+            option.value = branch;
+            option.textContent = branch;
+            branchSelect.appendChild(option);
+          });
+          
+          // Enable branch select
+          branchSelect.disabled = false;
+        } else {
+          const defaultOption = document.createElement('option');
+          defaultOption.value = '';
+          defaultOption.textContent = '🏢 No branches available';
+          branchSelect.appendChild(defaultOption);
+          branchSelect.disabled = true;
         }
-
-        const defaultOption = document.createElement('option');
-        defaultOption.value = '';
-        defaultOption.textContent = '🏢 Select branch';
-        branchSelect.appendChild(defaultOption);
-
-        storesData.storeMap[selectedStore].forEach(function (branch) {
-          const option = document.createElement('option');
-          option.value = branch;
-          option.textContent = branch;
-          branchSelect.appendChild(option);
-        });
-      } else {
+      } else if (selectedArea && !selectedStore) {
         const defaultOption = document.createElement('option');
         defaultOption.value = '';
         defaultOption.textContent = '🏢 Select store first';
         branchSelect.appendChild(defaultOption);
+        branchSelect.disabled = true;
+      } else {
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = '🏢 Select area first';
+        branchSelect.appendChild(defaultOption);
+        branchSelect.disabled = true;
       }
+    }
+
+    // Handle area selection to populate stores and reset branches
+    areaSelect.addEventListener('change', function () {
+      populateStoresByArea();
+      populateBranchesByAreaAndStore(); // Reset branches
+    });
+
+    // Handle store selection to populate branches
+    storeSelect.addEventListener('change', function () {
+      populateBranchesByAreaAndStore();
     });
 
     // Load names, areas, and stores when page loads
@@ -282,6 +347,10 @@
       loadNames();
       loadAreas();
       loadStores();
+      
+      // Initially disable store and branch selects
+      storeSelect.disabled = true;
+      branchSelect.disabled = true;
     });
 
     // Function to get geolocation

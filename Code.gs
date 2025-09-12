@@ -149,6 +149,9 @@ function getStoreList() {
   const store = [];
   const storeMap = new Map();
   const storeAreaMap = new Map();
+  const areaBranchMap = new Map();
+  const areaStoreMap = new Map();
+  const areaStoreBranchMap = new Map();
 
   storeData.forEach(item => {
     if (!storeMap.has(item.store)) {
@@ -158,13 +161,41 @@ function getStoreList() {
     }
     if (item.branch) {
       storeMap.get(item.store).push(item.branch);
+      
+      // Create area-branch mapping
+      if (!areaBranchMap.has(item.area)) {
+        areaBranchMap.set(item.area, []);
+      }
+      if (!areaBranchMap.get(item.area).includes(item.branch)) {
+        areaBranchMap.get(item.area).push(item.branch);
+      }
+      
+      // Create area-store mapping
+      if (!areaStoreMap.has(item.area)) {
+        areaStoreMap.set(item.area, []);
+      }
+      if (!areaStoreMap.get(item.area).includes(item.store)) {
+        areaStoreMap.get(item.area).push(item.store);
+      }
+      
+      // Create area-store-branch mapping
+      const areaStoreKey = `${item.area}|${item.store}`;
+      if (!areaStoreBranchMap.has(areaStoreKey)) {
+        areaStoreBranchMap.set(areaStoreKey, []);
+      }
+      if (!areaStoreBranchMap.get(areaStoreKey).includes(item.branch)) {
+        areaStoreBranchMap.get(areaStoreKey).push(item.branch);
+      }
     }
   });
 
   return {
     store: store,
     storeMap: Object.fromEntries(storeMap),
-    storeAreaMap: Object.fromEntries(storeAreaMap)
+    storeAreaMap: Object.fromEntries(storeAreaMap),
+    areaBranchMap: Object.fromEntries(areaBranchMap),
+    areaStoreMap: Object.fromEntries(areaStoreMap),
+    areaStoreBranchMap: Object.fromEntries(areaStoreBranchMap)
   };
 }
 
