@@ -213,7 +213,7 @@
       <input type="hidden" id="latitude" name="latitude">
       <input type="hidden" id="longitude" name="longitude">
     </form>
-    
+
     <!-- Product Inventory Section -->
     <div id="productSection" class="product-section">
       <h2>Product Inventory</h2>
@@ -226,8 +226,10 @@
         </div>
       </div>
     </div>
-    
-    <button type="submit" id="submitButton" form="inventoryForm">Register</button>
+
+    <div style="margin-top: 30px;">
+      <button type="submit" id="submitButton" form="inventoryForm">Register</button>
+    </div>
     <div id="message"></div>
   </div>
 
@@ -300,11 +302,11 @@
     // Function to load products from server
     function loadProducts() {
       google.script.run
-        .withSuccessHandler(function(products) {
+        .withSuccessHandler(function (products) {
           productsData = products;
           createProductTabs();
         })
-        .withFailureHandler(function(error) {
+        .withFailureHandler(function (error) {
           console.error('Failed to load products:', error);
           document.getElementById('productSection').style.display = 'none';
         })
@@ -356,7 +358,7 @@
           option.textContent = store;
           storeSelect.appendChild(option);
         });
-        
+
         // Enable store select
         storeSelect.disabled = false;
       } else {
@@ -364,11 +366,11 @@
         defaultOption.value = '';
         defaultOption.textContent = '🏢 Select area first';
         storeSelect.appendChild(defaultOption);
-        
+
         // Disable store select until area is chosen
         storeSelect.disabled = true;
       }
-      
+
       // Reset branch dropdown
       const branchDefaultOption = document.createElement('option');
       branchDefaultOption.value = '';
@@ -397,7 +399,7 @@
             option.textContent = branch;
             branchSelect.appendChild(option);
           });
-          
+
           // Enable branch select
           branchSelect.disabled = false;
         } else {
@@ -433,27 +435,39 @@
       populateBranchesByAreaAndStore();
     });
 
+    // Function to get product icon based on type
+    function getProductIcon(productType) {
+      const type = productType.toLowerCase();
+      if (type.includes('rtd')) {
+        return '🍵'; // tea icon for RTD
+      } else if (type.includes('leaf')) {
+        return '🌿'; // leaf icon for Leaf products
+      }
+      return '📦'; // default package icon
+    }
+
     // Function to create product tabs
     function createProductTabs() {
       const tabButtons = document.getElementById('productTabButtons');
       const tabContent = document.getElementById('productTabContent');
-      
+
       tabButtons.innerHTML = '';
       tabContent.innerHTML = '';
-      
+
       if (productsData.length === 0) {
         document.getElementById('productSection').style.display = 'none';
         return;
       }
-      
+
       productsData.forEach((product, index) => {
-        // Create tab button
+        // Create tab button with icon
         const tabButton = document.createElement('div');
         tabButton.className = 'tab-button';
-        tabButton.textContent = product.name;
+        const icon = getProductIcon(product.type);
+        tabButton.innerHTML = `${icon} ${product.name}`;
         tabButton.onclick = () => switchProductTab(index);
         tabButtons.appendChild(tabButton);
-        
+
         // Create tab content
         const productForm = document.createElement('div');
         productForm.className = 'product-form';
@@ -474,33 +488,33 @@
         `;
         tabContent.appendChild(productForm);
       });
-      
+
       // Activate first tab
       if (productsData.length > 0) {
         switchProductTab(0);
       }
     }
-    
+
     // Function to switch product tabs
     function switchProductTab(index) {
       // Remove active class from all buttons and forms
       document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.product-form').forEach(form => form.classList.remove('active'));
-      
+
       // Add active class to selected button and form
       document.querySelectorAll('.tab-button')[index].classList.add('active');
       document.getElementById(`product-form-${index}`).classList.add('active');
-      
+
       activeProductTab = index;
     }
-    
+
     // Load names, areas, stores, and products when page loads
     window.addEventListener('load', function () {
       loadNames();
       loadAreas();
       loadStores();
       loadProducts();
-      
+
       // Initially disable store and branch selects
       storeSelect.disabled = true;
       branchSelect.disabled = true;
@@ -554,13 +568,13 @@
     // Function to collect product inventory data
     function collectProductData() {
       const productInventory = [];
-      
+
       productsData.forEach((product, index) => {
         const bottleCount = document.getElementById(`product-bottle-${index}`).value || '0';
         const cartonCount = document.getElementById(`product-carton-${index}`).value || '0';
         const expiryDate = document.getElementById(`product-expiry-${index}`).value || '';
         const productNote = document.getElementById(`product-note-${index}`).value || '';
-        
+
         // Only include products with inventory data
         if (bottleCount !== '0' || cartonCount !== '0' || expiryDate || productNote) {
           productInventory.push({
@@ -573,10 +587,10 @@
           });
         }
       });
-      
+
       return productInventory;
     }
-    
+
     // Function to validate product inventory
     function validateProductInventory(productInventory) {
       if (productInventory.length === 0) {
@@ -602,15 +616,15 @@
         for (const pair of formData) {
           params.append(pair[0], pair[1]);
         }
-        
+
         // Add product inventory data
         const productInventory = collectProductData();
-        
+
         // Validate that at least one product has inventory
         if (!validateProductInventory(productInventory)) {
           return;
         }
-        
+
         params.append('productInventory', JSON.stringify(productInventory));
 
         messageDiv.textContent = 'Registering...';
