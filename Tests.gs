@@ -194,10 +194,6 @@ function testDoPostValidInput() {
       store: 'Test Store',
       branch: 'Test Branch',
       note: 'Test note',
-      bottleCount: '10',
-      cartonCount: '5',
-      expirationDate: '2024-12-31',
-      inventoryNote: 'Test inventory note',
       productInventory: JSON.stringify([{type: 'Test Type', name: 'Test Product', bottleCount: '5', cartonCount: '2', expirationDate: '2024-12-31', note: 'Test product note'}])
     }
   };
@@ -206,9 +202,9 @@ function testDoPostValidInput() {
   const mockSheet = {
     appendRow: function(data) {
       console.log('Mock appendRow called with:', data);
-      // Verify updated data structure (now 14 columns)
-      if (data.length !== 14) {
-        throw new Error('Expected 14 columns in data: timestamp, name, area, store, branch, latitude, longitude, address, note, bottleCount, cartonCount, expirationDate, inventoryNote, productInventory');
+      // Verify updated data structure (now 15 columns)
+      if (data.length !== 15) {
+        throw new Error('Expected 15 columns in data: timestamp, name, area, store, branch, latitude, longitude, address, note, productType, productName, bottleCount, cartonCount, expirationDate, productNote');
       }
       if (!(data[0] instanceof Date)) {
         throw new Error('First column should be timestamp');
@@ -224,6 +220,12 @@ function testDoPostValidInput() {
       }
       if (data[4] !== 'Test Branch') {
         throw new Error('Fifth column should be branch');
+      }
+      if (data[9] !== 'Test Type') {
+        throw new Error('Tenth column should be product type');
+      }
+      if (data[10] !== 'Test Product') {
+        throw new Error('Eleventh column should be product name');
       }
     }
   };
@@ -242,10 +244,9 @@ function testDoPostMissingParameters() {
     { parameter: { name: 'Test', area: 'Test Area' } }, // Missing coordinates, store, branch, inventory fields
     { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762' } }, // Missing longitude, store, branch, inventory fields
     { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503' } }, // Missing store, branch, inventory fields
-    { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503', store: 'Test Store' } }, // Missing branch, inventory fields
-    { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503', store: 'Test Store', branch: 'Test Branch' } }, // Missing inventory fields
-    { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503', store: 'Test Store', branch: 'Test Branch', bottleCount: '10' } }, // Missing cartonCount, expirationDate
-    { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503', store: 'Test Store', branch: 'Test Branch', bottleCount: '10', cartonCount: '5' } } // Missing expirationDate
+    { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503', store: 'Test Store' } }, // Missing branch
+    { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503', store: 'Test Store', branch: 'Test Branch' } }, // Missing product inventory
+    { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503', store: 'Test Store', branch: 'Test Branch', productInventory: '[]' } } // Empty product inventory
   ];
 
   testCases.forEach((testCase, index) => {
@@ -253,13 +254,25 @@ function testDoPostMissingParameters() {
       const result = doPost(testCase);
       const response = JSON.parse(result.getContent());
 
-      if (response.status === 'error' && response.message === 'Missing parameters') {
-        console.log(`✓ Test case ${index + 1}: Correctly handles missing parameters`);
+      // Different error messages for different cases
+      if (index < 6) {
+        // Cases 1-6: Missing basic parameters
+        if (response.status === 'error' && response.message === 'Missing parameters') {
+          console.log(`✓ Test case ${index + 1}: Correctly handles missing parameters`);
+        } else {
+          throw new Error(`Test case ${index + 1}: Expected error response for missing parameters`);
+        }
       } else {
-        throw new Error(`Test case ${index + 1}: Expected error response for missing parameters`);
+        // Cases 7-8: Missing or empty product inventory
+        if (response.status === 'error' && (response.message === 'Missing parameters' || response.message === 'At least one product inventory is required')) {
+          console.log(`✓ Test case ${index + 1}: Correctly handles missing product inventory`);
+        } else {
+          throw new Error(`Test case ${index + 1}: Expected error response for missing product inventory`);
+        }
       }
     } catch (error) {
       if (error.message.includes('Missing parameters') ||
+          error.message.includes('At least one product inventory is required') ||
           error.message.includes('Cannot read property') ||
           error.message.includes('Spreadsheet ID is not set')) {
         console.log(`✓ Test case ${index + 1}: Correctly handles missing parameters`);
@@ -283,10 +296,7 @@ function testDoPostWithStoreAndBranch() {
       store: 'Main Store',
       branch: 'Central Branch',
       note: 'Integration test note',
-      bottleCount: '15',
-      cartonCount: '8',
-      expirationDate: '2024-12-31',
-      inventoryNote: 'Integration inventory note'
+      productInventory: JSON.stringify([{type: 'Main Type', name: 'Main Product', bottleCount: '15', cartonCount: '8', expirationDate: '2024-12-31', note: 'Integration product note'}])
     }
   };
 
@@ -316,10 +326,7 @@ function testDoPostInvalidCoordinates() {
       store: 'Test Store',
       branch: 'Test Branch',
       note: 'Test with invalid coordinates',
-      bottleCount: '12',
-      cartonCount: '6',
-      expirationDate: '2024-12-31',
-      inventoryNote: 'Invalid coordinates test'
+      productInventory: JSON.stringify([{type: 'Test Type', name: 'Test Product', bottleCount: '12', cartonCount: '6', expirationDate: '2024-12-31', note: 'Invalid coordinates test'}])
     }
   };
 
@@ -354,7 +361,7 @@ function testDoGet() {
 }
 
 // Helper function to create test data
-function createTestEvent(name, area, lat, lng, store, branch, note, bottleCount, cartonCount, expirationDate, inventoryNote) {
+function createTestEvent(name, area, lat, lng, store, branch, note, productType, productName, bottleCount, cartonCount, expirationDate, productNote) {
   return {
     parameter: {
       name: name || '',
@@ -364,10 +371,14 @@ function createTestEvent(name, area, lat, lng, store, branch, note, bottleCount,
       store: store || 'Test Store',
       branch: branch || 'Test Branch',
       note: note || 'Test note',
-      bottleCount: bottleCount || '10',
-      cartonCount: cartonCount || '5',
-      expirationDate: expirationDate || '2024-12-31',
-      inventoryNote: inventoryNote || 'Test inventory note'
+      productInventory: JSON.stringify([{
+        type: productType || 'Test Type',
+        name: productName || 'Test Product',
+        bottleCount: bottleCount || '10',
+        cartonCount: cartonCount || '5',
+        expirationDate: expirationDate || '2024-12-31',
+        note: productNote || 'Test product note'
+      }])
     }
   };
 }
@@ -393,7 +404,7 @@ function runIntegrationTest() {
 
   // This would test the full flow with actual Google services
   // Only run this with proper test data and API keys
-  const testEvent = createTestEvent('Integration Test User', 'Integration Area', '35.6762', '139.6503', 'Integration Store', 'Main Branch', 'Integration test note', '20', '10', '2024-12-31', 'Integration inventory note');
+  const testEvent = createTestEvent('Integration Test User', 'Integration Area', '35.6762', '139.6503', 'Integration Store', 'Main Branch', 'Integration test note', 'Integration Type', 'Integration Product', '20', '10', '2024-12-31', 'Integration product note');
 
   try {
     const result = doPost(testEvent);
@@ -418,7 +429,7 @@ function runPerformanceTest() {
   // Test multiple calls
   for (let i = 0; i < 10; i++) {
     try {
-      const testEvent = createTestEvent(`Test User ${i}`, `Area ${i}`, '35.6762', '139.6503', `Store ${i}`, `Branch ${i}`, `Note ${i}`, `${i * 10}`, `${i * 5}`, '2024-12-31', `Inventory note ${i}`);
+      const testEvent = createTestEvent(`Test User ${i}`, `Area ${i}`, '35.6762', '139.6503', `Store ${i}`, `Branch ${i}`, `Note ${i}`, `Type ${i}`, `Product ${i}`, `${i * 10}`, `${i * 5}`, '2024-12-31', `Product note ${i}`);
       doPost(testEvent);
     } catch (error) {
       // Expected errors due to test environment

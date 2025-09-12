@@ -13,22 +13,24 @@ A Google Apps Script (GAS) based inventory reporting system that captures invent
 
 ## Data Captured
 
-The system records the following information:
+The system creates one record per product with inventory data. Each record contains:
 
 ### Required Fields
 - **Name**: User name (from Member sheet)
 - **Area**: Selected area (from Area sheet)
 - **Store**: Selected store (from Store sheet)
 - **Branch**: Selected branch (based on store selection)
-- **Bottle Count**: Number of inventory bottles
-- **Carton Count**: Number of inventory cartons
-- **Expiration Date**: Product expiration date (calendar picker)
 - **Location**: GPS coordinates (automatic)
+- **Product Inventory**: At least one product must have inventory data
 
 ### Optional Fields
 - **Note**: General notes
-- **Inventory Note**: Inventory-specific notes
-- **Product Inventory**: Individual product inventory data with counts and expiration dates
+
+### Product-Specific Fields (per product tab)
+- **Bottle Count**: Number of inventory bottles for this product
+- **Carton Count**: Number of inventory cartons for this product
+- **Expiration Date**: Product expiration date (calendar picker)
+- **Product Note**: Product-specific notes
 
 ### Automatic Fields
 - **Timestamp**: Automatic timestamp
@@ -39,7 +41,7 @@ The system records the following information:
 The system requires the following sheets in your Google Spreadsheet:
 
 ### Record Sheet
-Main data storage with 14 columns:
+Main data storage with 15 columns (one record per product):
 1. Timestamp
 2. Name
 3. Area
@@ -49,11 +51,12 @@ Main data storage with 14 columns:
 7. Longitude
 8. Address
 9. Note
-10. Bottle Count
-11. Carton Count
-12. Expiration Date
-13. Inventory Note
-14. Product Inventory (JSON data)
+10. Product Type
+11. Product Name
+12. Bottle Count
+13. Carton Count
+14. Expiration Date
+15. Product Note
 
 ### Member Sheet
 - **Column B**: Member names (starting from row 2)
@@ -115,10 +118,9 @@ Maps_API_KEY: Your Google Maps Geocoding API key
    - Select your name from the dropdown
    - Choose the area
    - Select store and branch
-   - Enter bottle and carton counts
-   - Set expiration date using the calendar picker
-   - Add notes if needed
-   - Use product tabs to enter inventory for specific products
+   - Add general notes if needed
+   - Use product tabs to enter inventory for each product (at least one required)
+   - For each product: enter bottle/carton counts, expiration date, and product notes
 3. Click "Register" to submit the data
 4. The system will automatically capture your location and save all data to the spreadsheet
 

@@ -22,13 +22,13 @@ This is a Google Apps Script (GAS) based inventory reporting system that records
 ### Data Flow
 
 1. User submits inventory data via web form with geolocation
-2. `doPost` validates all required parameters (name, area, coordinates, store, branch, inventory counts, expiration date)
+2. `doPost` validates all required parameters (name, area, coordinates, store, branch, product inventory)
 3. System geocodes coordinates to readable address
-4. Data appended to record sheet: [timestamp, name, area, store, branch, latitude, longitude, address, note, bottleCount, cartonCount, expirationDate, inventoryNote]
+4. Creates one record per product: [timestamp, name, area, store, branch, latitude, longitude, address, note, productType, productName, bottleCount, cartonCount, expirationDate, productNote]
 
 ### Google Sheets Structure
 
-- **Record Sheet**: Inventory records (14 columns as above)
+- **Record Sheet**: Inventory records (15 columns, one record per product)
 - **Member Sheet**: Employee names in column B (starting row 2)
 - **Area Sheet**: Area names in column A (starting row 2)
 - **Store Sheet**: Store names (column A), area names (column B), and branch names (column C) starting row 2
@@ -69,7 +69,7 @@ Maps_API_KEY: Google Maps Geocoding API key
 
 ## Key Implementation Details
 
-- **Parameter Validation**: All 9 parameters (name, area, latitude, longitude, store, branch, bottleCount, cartonCount, expirationDate) are required
+- **Parameter Validation**: Basic parameters (name, area, latitude, longitude, store, branch) plus at least one product inventory required
 - **Error Handling**: Graceful degradation when geocoding fails (still records inventory)
 - **Security**: API keys stored in Script Properties, not hardcoded
 - **Client-Side**: Uses navigator.geolocation with fallback error handling
@@ -82,7 +82,7 @@ Maps_API_KEY: Google Maps Geocoding API key
 The test suite covers:
 - API integration with proper mocking
 - Parameter validation and error cases
-- Data structure integrity (14-column format)
+- Data structure integrity (15-column format, one record per product)
 - Configuration validation
 - Performance benchmarking
 
@@ -90,7 +90,7 @@ Tests are designed to work in both configured and unconfigured environments.
 
 ## Current Data Structure
 
-The Record sheet contains 14 columns:
+The Record sheet contains 15 columns (one record per product):
 1. **Timestamp**: Automatic timestamp
 2. **Name**: User name from Member sheet (column B)
 3. **Area**: Selected area from Area sheet (column A)
@@ -100,11 +100,12 @@ The Record sheet contains 14 columns:
 7. **Longitude**: GPS coordinates
 8. **Address**: Geocoded address from coordinates
 9. **Note**: General notes (optional free text)
-10. **Bottle Count**: Number of inventory bottles (required)
-11. **Carton Count**: Number of inventory cartons (required)
-12. **Expiration Date**: Product expiration date (required, date format)
-13. **Inventory Note**: Inventory-specific notes (optional free text)
-14. **Product Inventory**: JSON data containing individual product inventory details
+10. **Product Type**: Product type from Product sheet (column A)
+11. **Product Name**: Product name from Product sheet (column B)
+12. **Bottle Count**: Number of inventory bottles for this product
+13. **Carton Count**: Number of inventory cartons for this product
+14. **Expiration Date**: Product expiration date (date format)
+15. **Product Note**: Product-specific notes (optional free text)
 
 ## Product Management
 
@@ -112,5 +113,5 @@ The system includes a comprehensive product inventory feature:
 - **Product Sheet**: Manages available products with types and names
 - **Tabbed Interface**: Product tabs displayed at bottom of form (up to ~10 products)
 - **Individual Tracking**: Each product can have separate bottle/carton counts and expiration dates
-- **Dual Records**: Creates both summary and product-specific records
-- **JSON Storage**: Product data stored as JSON in column 14 for complex queries
+- **Per-Product Records**: Creates one record per product with inventory data
+- **Validation**: Requires at least one product to have inventory data before submission

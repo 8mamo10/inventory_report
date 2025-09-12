@@ -19,10 +19,6 @@ function doPost(e) {
   const store = e.parameter.store || '';
   const branch = e.parameter.branch || '';
   const note = e.parameter.note || '';
-  const bottleCount = e.parameter.bottleCount || 0;
-  const cartonCount = e.parameter.cartonCount || 0;
-  const expirationDate = e.parameter.expirationDate || '';
-  const inventoryNote = e.parameter.inventoryNote || '';
   const productInventoryJSON = e.parameter.productInventory || '[]';
   
   // Parse product inventory data
@@ -34,7 +30,7 @@ function doPost(e) {
     productInventory = [];
   }
 
-  if (!name || !area || !latitude || !longitude || !store || !branch || !bottleCount || !cartonCount || !expirationDate) {
+  if (!name || !area || !latitude || !longitude || !store || !branch) {
     return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'Missing parameters' }))
       .setMimeType(ContentService.MimeType.JSON);
   }
@@ -54,31 +50,32 @@ function doPost(e) {
     address = 'Failed to fetch address';
   }
 
-  // Add main record as a new row
-  sheet.appendRow([timestamp, name, area, store, branch, latitude, longitude, address, note, bottleCount, cartonCount, expirationDate, inventoryNote, JSON.stringify(productInventory)]);
-  
-  // If there are product inventories, add them as separate records
-  if (productInventory && productInventory.length > 0) {
-    productInventory.forEach(product => {
-      // Add product-specific record
-      sheet.appendRow([
-        timestamp, 
-        name, 
-        area, 
-        store, 
-        branch, 
-        latitude, 
-        longitude, 
-        address, 
-        product.note || '', 
-        product.bottleCount || 0, 
-        product.cartonCount || 0, 
-        product.expirationDate || '', 
-        `PRODUCT: ${product.type} - ${product.name}`,
-        JSON.stringify([product])
-      ]);
-    });
+  // Validate that we have product inventory data
+  if (!productInventory || productInventory.length === 0) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'At least one product inventory is required' }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
+  
+  // Create one record for each product
+  productInventory.forEach(product => {
+    sheet.appendRow([
+      timestamp, 
+      name, 
+      area, 
+      store, 
+      branch, 
+      latitude, 
+      longitude, 
+      address, 
+      note,
+      product.type,
+      product.name,
+      product.bottleCount || 0, 
+      product.cartonCount || 0, 
+      product.expirationDate || '', 
+      product.note || ''
+    ]);
+  });
 
   return ContentService.createTextOutput(JSON.stringify({ status: 'success', message: 'Finish registration' }))
     .setMimeType(ContentService.MimeType.JSON);
