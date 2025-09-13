@@ -613,6 +613,16 @@
       return true;
     }
 
+    // Function to clear all product form data
+    function clearProductForms() {
+      productsData.forEach((product, index) => {
+        document.getElementById(`product-bottle-${index}`).value = '';
+        document.getElementById(`product-carton-${index}`).value = '';
+        document.getElementById(`product-expiry-${index}`).value = '';
+        document.getElementById(`product-note-${index}`).value = '';
+      });
+    }
+
     form.addEventListener('submit', async function (event) {
       event.preventDefault(); // Prevent default form submission
 
@@ -654,7 +664,22 @@
         if (data.status === 'success') {
           messageDiv.textContent = data.message;
           messageDiv.className = ''; // Success class is default (no error class)
-          form.reset(); // Reset form
+          
+          // Clear form but keep Name and Area values
+          const nameValue = nameSelect.value;
+          const areaValue = areaSelect.value;
+          
+          form.reset(); // Reset main form
+          clearProductForms(); // Clear all product form data
+          
+          // Restore Name and Area values
+          nameSelect.value = nameValue;
+          areaSelect.value = areaValue;
+          
+          // Re-populate stores and branches based on the kept area selection
+          if (areaValue) {
+            populateStoresByArea();
+          }
         } else {
           messageDiv.textContent = 'Error: ' + data.message;
           messageDiv.className = 'error'; // Add error class
