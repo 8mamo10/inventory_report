@@ -117,6 +117,17 @@
       border-color: #007bff;
     }
 
+    .tab-button.has-data {
+      background-color: #28a745;
+      color: white;
+      border-color: #28a745;
+    }
+
+    .tab-button.has-data.active {
+      background-color: #1e7e34;
+      border-color: #1e7e34;
+    }
+
     .tab-content {
       padding: 15px;
       border: 1px solid #e0e0e0;
@@ -476,10 +487,10 @@
         productForm.innerHTML = `
           <h3>${product.type} - ${product.name}</h3>
           <label for="product-bottle-${index}">Bottle Count:</label>
-          <input type="number" id="product-bottle-${index}" min="0" placeholder="0">
+          <input type="number" id="product-bottle-${index}" min="0" placeholder="-">
           
           <label for="product-carton-${index}">Carton Count:</label>
-          <input type="number" id="product-carton-${index}" min="0" placeholder="0">
+          <input type="number" id="product-carton-${index}" min="0" placeholder="-">
           
           <label for="product-expiry-${index}">Expiration Date:</label>
           <input type="date" id="product-expiry-${index}">
@@ -488,6 +499,15 @@
           <textarea id="product-note-${index}" rows="2" placeholder="Product-specific notes..."></textarea>
         `;
         tabContent.appendChild(productForm);
+
+        // Add event listeners to update tab indicator when data changes
+        const currentIndex = index; // Capture index for closure
+        ['input', 'change'].forEach(eventType => {
+          document.getElementById(`product-bottle-${currentIndex}`).addEventListener(eventType, () => updateTabIndicator(currentIndex));
+          document.getElementById(`product-carton-${currentIndex}`).addEventListener(eventType, () => updateTabIndicator(currentIndex));
+          document.getElementById(`product-expiry-${currentIndex}`).addEventListener(eventType, () => updateTabIndicator(currentIndex));
+          document.getElementById(`product-note-${currentIndex}`).addEventListener(eventType, () => updateTabIndicator(currentIndex));
+        });
       });
 
       // Activate first tab
@@ -620,6 +640,38 @@
         document.getElementById(`product-carton-${index}`).value = '';
         document.getElementById(`product-expiry-${index}`).value = '';
         document.getElementById(`product-note-${index}`).value = '';
+      });
+      updateAllTabIndicators(); // Update visual indicators after clearing
+    }
+
+    // Function to check if a product tab has any data
+    function hasProductData(index) {
+      const bottleCount = document.getElementById(`product-bottle-${index}`).value;
+      const cartonCount = document.getElementById(`product-carton-${index}`).value;
+      const expiryDate = document.getElementById(`product-expiry-${index}`).value;
+      const productNote = document.getElementById(`product-note-${index}`).value;
+      
+      return bottleCount || cartonCount || expiryDate || productNote;
+    }
+
+    // Function to update tab visual indicator
+    function updateTabIndicator(index) {
+      const tabButton = document.querySelectorAll('.tab-button')[index];
+      const icon = getProductIcon(productsData[index].type);
+      
+      if (hasProductData(index)) {
+        tabButton.classList.add('has-data');
+        tabButton.innerHTML = `✅ ${icon} ${productsData[index].name}`;
+      } else {
+        tabButton.classList.remove('has-data');
+        tabButton.innerHTML = `${icon} ${productsData[index].name}`;
+      }
+    }
+
+    // Function to update all tab indicators
+    function updateAllTabIndicators() {
+      productsData.forEach((product, index) => {
+        updateTabIndicator(index);
       });
     }
 
