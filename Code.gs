@@ -175,8 +175,8 @@ function getStoreList() {
     throw new Error(`Store sheet "${storeSheetName}" not found.`);
   }
 
-  // Get store names, areas, and branch names starting from row 2
-  const range = storeSheet.getRange('A2:C');
+  // Get store names, areas, branch names, and product availability (columns A-M) starting from row 2
+  const range = storeSheet.getRange('A2:M');
   const values = range.getValues();
 
   // Exclude blank rows and organize data
@@ -185,7 +185,8 @@ function getStoreList() {
     .map(row => ({
       store: row[0].toString().trim(),
       area: row[1] ? row[1].toString().trim() : '',
-      branch: row[2] ? row[2].toString().trim() : ''
+      branch: row[2] ? row[2].toString().trim() : '',
+      productAvailability: row.slice(3, 13) // Columns D-M (indices 3-12)
     }));
 
   // Get store name list (remove duplicates, maintain order)
@@ -195,6 +196,7 @@ function getStoreList() {
   const areaBranchMap = new Map();
   const areaStoreMap = new Map();
   const areaStoreBranchMap = new Map();
+  const storeBranchProductMap = new Map();
 
   storeData.forEach(item => {
     if (!storeMap.has(item.store)) {
@@ -229,6 +231,21 @@ function getStoreList() {
       if (!areaStoreBranchMap.get(areaStoreKey).includes(item.branch)) {
         areaStoreBranchMap.get(areaStoreKey).push(item.branch);
       }
+      
+      // Create store-branch-product mapping
+      const storeBranchKey = `${item.store}|${item.branch}`;
+      if (!storeBranchProductMap.has(storeBranchKey)) {
+        storeBranchProductMap.set(storeBranchKey, []);
+      }
+      
+      // Check which products are available (marked with "●")
+      const availableProducts = [];
+      item.productAvailability.forEach((availability, index) => {
+        if (availability && availability.toString().trim() === '●') {
+          availableProducts.push(index); // Store product index (0-9 for columns D-M)
+        }
+      });
+      storeBranchProductMap.set(storeBranchKey, availableProducts);
     }
   });
 
@@ -238,7 +255,8 @@ function getStoreList() {
     storeAreaMap: Object.fromEntries(storeAreaMap),
     areaBranchMap: Object.fromEntries(areaBranchMap),
     areaStoreMap: Object.fromEntries(areaStoreMap),
-    areaStoreBranchMap: Object.fromEntries(areaStoreBranchMap)
+    areaStoreBranchMap: Object.fromEntries(areaStoreBranchMap),
+    storeBranchProductMap: Object.fromEntries(storeBranchProductMap)
   };
 }
 

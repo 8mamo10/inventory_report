@@ -436,6 +436,11 @@
       }
     }
 
+    // Handle branch selection to update product tabs
+    branchSelect.addEventListener('change', function () {
+      updateProductTabs(); // Update products when branch changes
+    });
+
     // Handle area selection to populate stores and reset branches
     areaSelect.addEventListener('change', function () {
       populateStoresByArea();
@@ -445,6 +450,7 @@
     // Handle store selection to populate branches
     storeSelect.addEventListener('change', function () {
       populateBranchesByAreaAndStore();
+      updateProductTabs(); // Update products when store changes
     });
 
     // Function to get product icon based on type
@@ -458,7 +464,7 @@
       return '📦'; // default package icon
     }
 
-    // Function to create product tabs
+    // Function to create product tabs (initial load - shows instruction message)
     function createProductTabs() {
       const tabButtons = document.getElementById('productTabButtons');
       const tabContent = document.getElementById('productTabContent');
@@ -471,49 +477,13 @@
         return;
       }
 
-      productsData.forEach((product, index) => {
-        // Create tab button with icon
-        const tabButton = document.createElement('div');
-        tabButton.className = 'tab-button';
-        const icon = getProductIcon(product.type);
-        tabButton.innerHTML = `${icon} ${product.name}`;
-        tabButton.onclick = () => switchProductTab(index);
-        tabButtons.appendChild(tabButton);
-
-        // Create tab content
-        const productForm = document.createElement('div');
-        productForm.className = 'product-form';
-        productForm.id = `product-form-${index}`;
-        productForm.innerHTML = `
-          <h3>${product.type} - ${product.name}</h3>
-          <label for="product-bottle-${index}">Bottle Count:</label>
-          <input type="number" id="product-bottle-${index}" min="0" placeholder="-">
-          
-          <label for="product-carton-${index}">Carton Count:</label>
-          <input type="number" id="product-carton-${index}" min="0" placeholder="-">
-          
-          <label for="product-expiry-${index}">Expiration Date:</label>
-          <input type="date" id="product-expiry-${index}">
-          
-          <label for="product-note-${index}">Product Note:</label>
-          <textarea id="product-note-${index}" rows="2" placeholder="Product-specific notes..."></textarea>
-        `;
-        tabContent.appendChild(productForm);
-
-        // Add event listeners to update tab indicator when data changes
-        const currentIndex = index; // Capture index for closure
-        ['input', 'change'].forEach(eventType => {
-          document.getElementById(`product-bottle-${currentIndex}`).addEventListener(eventType, () => updateTabIndicator(currentIndex));
-          document.getElementById(`product-carton-${currentIndex}`).addEventListener(eventType, () => updateTabIndicator(currentIndex));
-          document.getElementById(`product-expiry-${currentIndex}`).addEventListener(eventType, () => updateTabIndicator(currentIndex));
-          document.getElementById(`product-note-${currentIndex}`).addEventListener(eventType, () => updateTabIndicator(currentIndex));
-        });
-      });
-
-      // Activate first tab
-      if (productsData.length > 0) {
-        switchProductTab(0);
-      }
+      // Show instruction message initially
+      const instructionMessage = document.createElement('div');
+      instructionMessage.style.textAlign = 'center';
+      instructionMessage.style.padding = '20px';
+      instructionMessage.style.color = '#666';
+      instructionMessage.textContent = 'Please select a store and branch to see available products.';
+      tabContent.appendChild(instructionMessage);
     }
 
     // Function to switch product tabs
@@ -600,12 +570,13 @@
     // Function to collect product inventory data
     function collectProductData() {
       const productInventory = [];
+      const availableProducts = getAvailableProducts();
 
-      productsData.forEach((product, index) => {
-        const bottleCount = document.getElementById(`product-bottle-${index}`).value || '0';
-        const cartonCount = document.getElementById(`product-carton-${index}`).value || '0';
-        const expiryDate = document.getElementById(`product-expiry-${index}`).value || '';
-        const productNote = document.getElementById(`product-note-${index}`).value || '';
+      availableProducts.forEach((product, tabIndex) => {
+        const bottleCount = document.getElementById(`product-bottle-${tabIndex}`).value || '0';
+        const cartonCount = document.getElementById(`product-carton-${tabIndex}`).value || '0';
+        const expiryDate = document.getElementById(`product-expiry-${tabIndex}`).value || '';
+        const productNote = document.getElementById(`product-note-${tabIndex}`).value || '';
 
         // Only include products with inventory data
         if (bottleCount !== '0' || cartonCount !== '0' || expiryDate || productNote) {
@@ -635,13 +606,23 @@
 
     // Function to clear all product form data
     function clearProductForms() {
-      productsData.forEach((product, index) => {
-        document.getElementById(`product-bottle-${index}`).value = '';
-        document.getElementById(`product-carton-${index}`).value = '';
-        document.getElementById(`product-expiry-${index}`).value = '';
-        document.getElementById(`product-note-${index}`).value = '';
+      const availableProducts = getAvailableProducts();
+      availableProducts.forEach((product, tabIndex) => {
+        const bottleInput = document.getElementById(`product-bottle-${tabIndex}`);
+        const cartonInput = document.getElementById(`product-carton-${tabIndex}`);
+        const expiryInput = document.getElementById(`product-expiry-${tabIndex}`);
+        const noteInput = document.getElementById(`product-note-${tabIndex}`);
+        
+        if (bottleInput) bottleInput.value = '';
+        if (cartonInput) cartonInput.value = '';
+        if (expiryInput) expiryInput.value = '';
+        if (noteInput) noteInput.value = '';
       });
-      updateAllTabIndicators(); // Update visual indicators after clearing
+      
+      // Update visual indicators for all visible tabs
+      availableProducts.forEach((product, tabIndex) => {
+        updateTabIndicatorForFiltered(tabIndex);
+      });
     }
 
     // Function to check if a product tab has any data
@@ -673,6 +654,118 @@
       productsData.forEach((product, index) => {
         updateTabIndicator(index);
       });
+    }
+
+    // Function to get available products for selected store and branch
+    function getAvailableProducts() {
+      const selectedStore = storeSelect.value;
+      const selectedBranch = branchSelect.value;
+      
+      if (!selectedStore || !selectedBranch || !storesData.storeBranchProductMap) {
+        return []; // No products available if store/branch not selected
+      }
+      
+      const storeBranchKey = `${selectedStore}|${selectedBranch}`;
+      const availableProductIndices = storesData.storeBranchProductMap[storeBranchKey] || [];
+      
+      // Filter products based on available indices
+      return productsData.filter((product, index) => availableProductIndices.includes(index));
+    }
+
+    // Function to update product tabs based on store/branch selection
+    function updateProductTabs() {
+      const availableProducts = getAvailableProducts();
+      const tabButtons = document.getElementById('productTabButtons');
+      const tabContent = document.getElementById('productTabContent');
+      
+      // Clear existing tabs
+      tabButtons.innerHTML = '';
+      tabContent.innerHTML = '';
+      
+      if (availableProducts.length === 0) {
+        // Show message when no products are available
+        const noProductsMessage = document.createElement('div');
+        noProductsMessage.style.textAlign = 'center';
+        noProductsMessage.style.padding = '20px';
+        noProductsMessage.style.color = '#666';
+        noProductsMessage.textContent = 'No products available for this store and branch combination.';
+        tabContent.appendChild(noProductsMessage);
+        return;
+      }
+      
+      // Create tabs for available products
+      availableProducts.forEach((product, tabIndex) => {
+        const originalIndex = productsData.indexOf(product);
+        
+        // Create tab button with icon
+        const tabButton = document.createElement('div');
+        tabButton.className = 'tab-button';
+        const icon = getProductIcon(product.type);
+        tabButton.innerHTML = `${icon} ${product.name}`;
+        tabButton.onclick = () => switchProductTab(tabIndex);
+        tabButtons.appendChild(tabButton);
+
+        // Create tab content
+        const productForm = document.createElement('div');
+        productForm.className = 'product-form';
+        productForm.id = `product-form-${tabIndex}`;
+        productForm.innerHTML = `
+          <h3>${product.type} - ${product.name}</h3>
+          <label for="product-bottle-${tabIndex}">Bottle Count:</label>
+          <input type="number" id="product-bottle-${tabIndex}" min="0" placeholder="-">
+          
+          <label for="product-carton-${tabIndex}">Carton Count:</label>
+          <input type="number" id="product-carton-${tabIndex}" min="0" placeholder="-">
+          
+          <label for="product-expiry-${tabIndex}">Expiration Date:</label>
+          <input type="date" id="product-expiry-${tabIndex}">
+          
+          <label for="product-note-${tabIndex}">Product Note:</label>
+          <textarea id="product-note-${tabIndex}" rows="2" placeholder="Product-specific notes..."></textarea>
+        `;
+        tabContent.appendChild(productForm);
+
+        // Add event listeners to update tab indicator when data changes
+        const currentTabIndex = tabIndex;
+        ['input', 'change'].forEach(eventType => {
+          document.getElementById(`product-bottle-${currentTabIndex}`).addEventListener(eventType, () => updateTabIndicatorForFiltered(currentTabIndex));
+          document.getElementById(`product-carton-${currentTabIndex}`).addEventListener(eventType, () => updateTabIndicatorForFiltered(currentTabIndex));
+          document.getElementById(`product-expiry-${currentTabIndex}`).addEventListener(eventType, () => updateTabIndicatorForFiltered(currentTabIndex));
+          document.getElementById(`product-note-${currentTabIndex}`).addEventListener(eventType, () => updateTabIndicatorForFiltered(currentTabIndex));
+        });
+      });
+      
+      // Activate first tab if available
+      if (availableProducts.length > 0) {
+        switchProductTab(0);
+      }
+    }
+
+    // Function to update tab indicator for filtered products
+    function updateTabIndicatorForFiltered(tabIndex) {
+      const tabButton = document.querySelectorAll('.tab-button')[tabIndex];
+      const availableProducts = getAvailableProducts();
+      
+      if (tabIndex >= availableProducts.length) return;
+      
+      const product = availableProducts[tabIndex];
+      const icon = getProductIcon(product.type);
+      
+      // Check if this tab has data
+      const bottleCount = document.getElementById(`product-bottle-${tabIndex}`).value;
+      const cartonCount = document.getElementById(`product-carton-${tabIndex}`).value;
+      const expiryDate = document.getElementById(`product-expiry-${tabIndex}`).value;
+      const productNote = document.getElementById(`product-note-${tabIndex}`).value;
+      
+      const hasData = bottleCount || cartonCount || expiryDate || productNote;
+      
+      if (hasData) {
+        tabButton.classList.add('has-data');
+        tabButton.innerHTML = `✅ ${icon} ${product.name}`;
+      } else {
+        tabButton.classList.remove('has-data');
+        tabButton.innerHTML = `${icon} ${product.name}`;
+      }
     }
 
     form.addEventListener('submit', async function (event) {
