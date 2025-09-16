@@ -572,33 +572,21 @@
       const productInventory = [];
       const availableProducts = getAvailableProducts();
 
+      // Include ALL available products - validation ensures they all have required data
       availableProducts.forEach((product, tabIndex) => {
         const bottleCount = document.getElementById(`product-bottle-${tabIndex}`).value;
         const cartonCount = document.getElementById(`product-carton-${tabIndex}`).value;
         const expiryDate = document.getElementById(`product-expiry-${tabIndex}`).value;
         const productNote = document.getElementById(`product-note-${tabIndex}`).value || '';
 
-        // Include products with required data based on inventory amounts
-        if (bottleCount !== '' && cartonCount !== '') {
-          const bottleNum = parseInt(bottleCount) || 0;
-          const cartonNum = parseInt(cartonCount) || 0;
-          
-          // If inventory > 0, expiration date is required
-          // If inventory = 0, expiration date is optional
-          if ((bottleNum > 0 || cartonNum > 0) && !expiryDate) {
-            // Skip this product - validation will catch this
-            return;
-          }
-          
-          productInventory.push({
-            type: product.type,
-            name: product.name,
-            bottleCount: bottleCount,
-            cartonCount: cartonCount,
-            expirationDate: formatDateToDDMMYYYY(expiryDate),
-            note: productNote
-          });
-        }
+        productInventory.push({
+          type: product.type,
+          name: product.name,
+          bottleCount: bottleCount,
+          cartonCount: cartonCount,
+          expirationDate: formatDateToDDMMYYYY(expiryDate),
+          note: productNote
+        });
       });
 
       return productInventory;
@@ -608,45 +596,36 @@
     function validateProductInventory(productInventory) {
       const availableProducts = getAvailableProducts();
       
-      // Check if at least one product has data
-      let hasAnyProductData = false;
+      if (availableProducts.length === 0) {
+        messageDiv.textContent = 'No products available for this store and branch.';
+        messageDiv.className = 'error';
+        return false;
+      }
+      
       let validationErrors = [];
       
+      // ALL available products must have their required fields filled
       availableProducts.forEach((product, tabIndex) => {
         const bottleCount = document.getElementById(`product-bottle-${tabIndex}`).value;
         const cartonCount = document.getElementById(`product-carton-${tabIndex}`).value;
         const expiryDate = document.getElementById(`product-expiry-${tabIndex}`).value;
-        const productNote = document.getElementById(`product-note-${tabIndex}`).value;
         
-        // Check if this product has any data
-        const hasData = bottleCount || cartonCount || expiryDate || productNote;
+        // Bottle and carton counts are always required
+        if (!bottleCount || bottleCount === '') {
+          validationErrors.push(`${product.name}: Bottle Count is required`);
+        }
+        if (!cartonCount || cartonCount === '') {
+          validationErrors.push(`${product.name}: Carton Count is required`);
+        }
         
-        if (hasData) {
-          hasAnyProductData = true;
-          
-          // If product has any data, validate based on inventory amounts
-          if (!bottleCount || bottleCount === '') {
-            validationErrors.push(`${product.name}: Bottle Count is required`);
-          }
-          if (!cartonCount || cartonCount === '') {
-            validationErrors.push(`${product.name}: Carton Count is required`);
-          }
-          
-          // Expiration date is only required if bottle or carton count > 0
-          const bottleNum = parseInt(bottleCount) || 0;
-          const cartonNum = parseInt(cartonCount) || 0;
-          
-          if ((bottleNum > 0 || cartonNum > 0) && (!expiryDate || expiryDate === '')) {
-            validationErrors.push(`${product.name}: Expiration Date is required when inventory count > 0`);
-          }
+        // Expiration date is only required if bottle or carton count > 0
+        const bottleNum = parseInt(bottleCount) || 0;
+        const cartonNum = parseInt(cartonCount) || 0;
+        
+        if ((bottleNum > 0 || cartonNum > 0) && (!expiryDate || expiryDate === '')) {
+          validationErrors.push(`${product.name}: Expiration Date is required when inventory count > 0`);
         }
       });
-      
-      if (!hasAnyProductData) {
-        messageDiv.textContent = 'Please enter inventory data for at least one product.';
-        messageDiv.className = 'error';
-        return false;
-      }
       
       if (validationErrors.length > 0) {
         messageDiv.textContent = validationErrors[0]; // Show first error
@@ -834,15 +813,15 @@
       const bottleCount = document.getElementById(`product-bottle-${tabIndex}`).value;
       const cartonCount = document.getElementById(`product-carton-${tabIndex}`).value;
       const expiryDate = document.getElementById(`product-expiry-${tabIndex}`).value;
-      const productNote = document.getElementById(`product-note-${tabIndex}`).value;
       
-      // Check if required fields are complete based on inventory amounts
-      const bottleNum = parseInt(bottleCount) || 0;
-      const cartonNum = parseInt(cartonCount) || 0;
-      
+      // Check if ALL required fields are complete
       let hasCompleteData = false;
       
+      // Bottle and carton counts are always required
       if (bottleCount !== '' && cartonCount !== '') {
+        const bottleNum = parseInt(bottleCount) || 0;
+        const cartonNum = parseInt(cartonCount) || 0;
+        
         // If inventory > 0, expiration date is required
         if (bottleNum > 0 || cartonNum > 0) {
           hasCompleteData = expiryDate !== '';
