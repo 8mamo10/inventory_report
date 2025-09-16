@@ -78,6 +78,31 @@ function doPost(e) {
       .setMimeType(ContentService.MimeType.JSON);
   }
   
+  // Validate that ALL products have required fields completed
+  const validationErrors = [];
+  productInventory.forEach(product => {
+    // Bottle and carton counts are always required
+    if (!product.bottleCount || product.bottleCount === '' || product.bottleCount === null || product.bottleCount === undefined) {
+      validationErrors.push(`${product.name}: Bottle Count is required`);
+    }
+    if (!product.cartonCount || product.cartonCount === '' || product.cartonCount === null || product.cartonCount === undefined) {
+      validationErrors.push(`${product.name}: Carton Count is required`);
+    }
+    
+    // Expiration date is only required if bottle or carton count > 0
+    const bottleNum = parseInt(product.bottleCount) || 0;
+    const cartonNum = parseInt(product.cartonCount) || 0;
+    
+    if ((bottleNum > 0 || cartonNum > 0) && (!product.expirationDate || product.expirationDate === '')) {
+      validationErrors.push(`${product.name}: Expiration Date is required when inventory count > 0`);
+    }
+  });
+  
+  if (validationErrors.length > 0) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: validationErrors[0] }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  
   // Create one record for each product
   productInventory.forEach(product => {
     sheet.appendRow([
