@@ -54,13 +54,22 @@ function doPost(e) {
   const now = new Date();
   const formattedTimestamp = formatTimestamp(now);
   let address = 'Fetching address...';
+  let finalLatitude = latitude;
+  let finalLongitude = longitude;
 
-  try {
-    // Call function to get address from latitude and longitude
-    address = getAddressFromCoordinates(latitude, longitude);
-  } catch (err) {
-    console.error("Failed to fetch address:", err);
-    address = 'Failed to fetch address';
+  // Check if GPS coordinates are available
+  if (latitude === 'GPS_FAILED' || longitude === 'GPS_FAILED') {
+    finalLatitude = 'GPS not available';
+    finalLongitude = 'GPS not available';
+    address = 'GPS not available';
+  } else {
+    try {
+      // Call function to get address from latitude and longitude
+      address = getAddressFromCoordinates(latitude, longitude);
+    } catch (err) {
+      console.error("Failed to fetch address:", err);
+      address = 'Failed to fetch address';
+    }
   }
 
   // Validate that we have product inventory data
@@ -77,8 +86,8 @@ function doPost(e) {
       area, 
       store, 
       branch, 
-      latitude, 
-      longitude, 
+      finalLatitude, 
+      finalLongitude, 
       address, 
       note,
       product.type,

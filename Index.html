@@ -775,9 +775,18 @@
       messageDiv.textContent = 'Getting location...';
       messageDiv.className = ''; // Reset class
 
+      // Try to get location, but don't fail if it's not available
       try {
-        await getLocation(); // Get location first
+        await getLocation();
+      } catch (locationError) {
+        console.log('Location could not be obtained:', locationError);
+        // Set placeholder values to indicate GPS failure
+        latitudeInput.value = 'GPS_FAILED';
+        longitudeInput.value = 'GPS_FAILED';
+        messageDiv.textContent = 'Location unavailable, proceeding with registration...';
+      }
 
+      try {
         const formData = new FormData(form);
         const params = new URLSearchParams();
         for (const pair of formData) {
@@ -789,6 +798,7 @@
 
         // Validate that at least one product has inventory
         if (!validateProductInventory(productInventory)) {
+          submitButton.disabled = false; // Re-enable button when validation fails
           return;
         }
 
