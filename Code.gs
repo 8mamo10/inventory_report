@@ -103,26 +103,31 @@ function doPost(e) {
       .setMimeType(ContentService.MimeType.JSON);
   }
   
-  // Create one record for each product
-  productInventory.forEach(product => {
-    sheet.appendRow([
-      formattedTimestamp, 
-      name, 
-      area, 
-      store, 
-      branch, 
-      finalLatitude, 
-      finalLongitude, 
-      address, 
-      note,
-      product.type,
-      product.name,
-      product.bottleCount || 0, 
-      product.cartonCount || 0, 
-      product.expirationDate || '', 
-      product.note || ''
-    ]);
-  });
+  // Prepare all rows for batch insert (much faster than individual appendRow calls)
+  const rowsToInsert = productInventory.map(product => [
+    formattedTimestamp, 
+    name, 
+    area, 
+    store, 
+    branch, 
+    finalLatitude, 
+    finalLongitude, 
+    address, 
+    note,
+    product.type,
+    product.name,
+    product.bottleCount || 0, 
+    product.cartonCount || 0, 
+    product.expirationDate || '', 
+    product.note || ''
+  ]);
+  
+  // Insert all rows at once (single API call instead of multiple)
+  if (rowsToInsert.length > 0) {
+    const startRow = sheet.getLastRow() + 1;
+    const range = sheet.getRange(startRow, 1, rowsToInsert.length, rowsToInsert[0].length);
+    range.setValues(rowsToInsert);
+  }
 
   return ContentService.createTextOutput(JSON.stringify({ status: 'success', message: 'Finish registration' }))
     .setMimeType(ContentService.MimeType.JSON);

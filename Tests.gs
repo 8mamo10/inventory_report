@@ -20,6 +20,9 @@ function runAllTests() {
     console.log('All tests passed!');
   } catch (error) {
     console.error('Test failed:', error);
+  } finally {
+    // Clean up test records
+    cleanupTestRecords();
   }
 }
 
@@ -516,4 +519,132 @@ function runPerformanceTest() {
   const duration = endTime - startTime;
 
   console.log(`Performance test completed in ${duration}ms`);
+}
+
+// Cleanup function to remove test records
+function cleanupTestRecords() {
+  console.log('Cleaning up test records...');
+  
+  try {
+    const spreadSheetId = PropertiesService.getScriptProperties().getProperty('SpreadSheet_ID');
+    if (!spreadSheetId) {
+      console.log('✓ No spreadsheet configured - no cleanup needed');
+      return;
+    }
+
+    const recordSheetName = PropertiesService.getScriptProperties().getProperty('Record_Sheet_Name');
+    if (!recordSheetName) {
+      console.log('✓ No record sheet configured - no cleanup needed');
+      return;
+    }
+
+    const ss = SpreadsheetApp.openById(spreadSheetId);
+    const sheet = ss.getSheetByName(recordSheetName);
+    
+    if (!sheet) {
+      console.log('✓ Record sheet not found - no cleanup needed');
+      return;
+    }
+
+    // Get all data from the sheet
+    const lastRow = sheet.getLastRow();
+    if (lastRow <= 1) {
+      console.log('✓ No data records found - no cleanup needed');
+      return;
+    }
+
+    const range = sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn());
+    const values = range.getValues();
+    
+    // Find rows with test data (containing "Test" in name, area, store, or product fields)
+    const testRowIndices = [];
+    values.forEach((row, index) => {
+      const rowData = row.join('|').toLowerCase();
+      if (rowData.includes('test user') || 
+          rowData.includes('test area') || 
+          rowData.includes('test store') || 
+          rowData.includes('test product') || 
+          rowData.includes('integration test') ||
+          rowData.includes('test type') ||
+          rowData.includes('main area') ||
+          rowData.includes('main store')) {
+        testRowIndices.push(index + 2); // +2 because index is 0-based and we start from row 2
+      }
+    });
+
+    if (testRowIndices.length === 0) {
+      console.log('✓ No test records found - no cleanup needed');
+      return;
+    }
+
+    // Delete test rows (in reverse order to maintain row indices)
+    testRowIndices.reverse().forEach(rowIndex => {
+      sheet.deleteRow(rowIndex);
+    });
+
+    console.log(`✓ Cleaned up ${testRowIndices.length} test records`);
+    
+  } catch (error) {
+    console.log('Cleanup error (expected if not properly configured):', error.message);
+  }
+}
+
+// Manual cleanup function for specific test patterns
+function cleanupSpecificTestRecords(patterns = ['Test User', 'Integration Test', 'Main Area']) {
+  console.log('Cleaning up specific test records...');
+  
+  try {
+    const spreadSheetId = PropertiesService.getScriptProperties().getProperty('SpreadSheet_ID');
+    const recordSheetName = PropertiesService.getScriptProperties().getProperty('Record_Sheet_Name');
+    
+    if (!spreadSheetId || !recordSheetName) {
+      console.log('✓ Configuration not found - no cleanup needed');
+      return;
+    }
+
+    const ss = SpreadsheetApp.openById(spreadSheetId);
+    const sheet = ss.getSheetByName(recordSheetName);
+    
+    if (!sheet) {
+      console.log('✓ Record sheet not found - no cleanup needed');
+      return;
+    }
+
+    const lastRow = sheet.getLastRow();
+    if (lastRow <= 1) {
+      console.log('✓ No data records found - no cleanup needed');
+      return;
+    }
+
+    const range = sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn());
+    const values = range.getValues();
+    
+    // Find rows matching specific patterns
+    const testRowIndices = [];
+    values.forEach((row, index) => {
+      const rowData = row.join('|');
+      const matchesPattern = patterns.some(pattern => 
+        rowData.includes(pattern)
+      );
+      
+      if (matchesPattern) {
+        testRowIndices.push(index + 2);
+      }
+    });
+
+    if (testRowIndices.length === 0) {
+      console.log('✓ No matching test records found');
+      return;
+    }
+
+    // Delete matching rows (in reverse order)
+    testRowIndices.reverse().forEach(rowIndex => {
+      sheet.deleteRow(rowIndex);
+    });
+
+    console.log(`✓ Cleaned up ${testRowIndices.length} specific test records`);
+    
+  } catch (error) {
+    console.log('Specific cleanup error:', error.message);
+  }
 }
