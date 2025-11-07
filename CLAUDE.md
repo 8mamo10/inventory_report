@@ -4,10 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Google Apps Script (GAS) based inventory reporting system that records inventory data with location tracking. The system consists of:
+This is a Google Apps Script (GAS) based Merchandiser Report system that records product inventory data with location tracking. The system consists of:
 
 - **Code.gs**: Main server-side functions for handling form submissions, geocoding, and data management
-- **Index.html**: Client-side web interface for inventory reporting
+- **Index.html**: Client-side web interface for the Merchandiser Report
 - **Tests.gs**: Comprehensive unit tests for all major functions
 
 ## Architecture
@@ -17,7 +17,7 @@ This is a Google Apps Script (GAS) based inventory reporting system that records
 1. **Web App Handler** (`doPost`): Processes inventory submissions with location validation
 2. **Geocoding Service** (`getAddressFromCoordinates`): Converts coordinates to addresses using Google Maps API
 3. **Data Sources**: Dynamically loads member, area, and store lists from Google Sheets
-4. **HTML Interface** (`doGet`): Serves the inventory form with real-time location capture
+4. **HTML Interface** (`doGet`): Serves the Merchandiser Report form with real-time location capture
 
 ### Data Flow
 
@@ -70,12 +70,12 @@ Maps_API_KEY: Google Maps Geocoding API key
 ## Key Implementation Details
 
 - **Parameter Validation**: Basic parameters (name, area, latitude, longitude, store, branch) plus at least one product inventory required
-- **Error Handling**: Graceful degradation when geocoding fails (still records inventory)
+- **Error Handling**: Graceful degradation when geocoding fails (still records inventory data)
 - **Security**: API keys stored in Script Properties, not hardcoded
 - **Client-Side**: Uses navigator.geolocation with fallback error handling
 - **Dynamic Dropdowns**: Store selection populates corresponding branch options
 - **Calendar UI**: Date picker for expiration date selection
-- **Inventory Fields**: Separate bottle/carton counts and inventory-specific notes
+- **Inventory Fields**: Separate bottle/carton counts and product-specific notes
 
 ## Testing Strategy
 
@@ -102,8 +102,8 @@ The Record sheet contains 15 columns (one record per product):
 9. **Note**: General notes (optional free text)
 10. **Product Type**: Product type from Product sheet (column A)
 11. **Product Name**: Product name from Product sheet (column B)
-12. **Bottle Count**: Number of inventory bottles for this product
-13. **Carton Count**: Number of inventory cartons for this product
+12. **Bottle Count**: Number of bottles for this product
+13. **Carton Count**: Number of cartons for this product
 14. **Expiration Date**: Product expiration date (date format)
 15. **Product Note**: Product-specific notes (optional free text)
 

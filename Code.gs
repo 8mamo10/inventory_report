@@ -32,7 +32,7 @@ function doPost(e) {
   const branch = e.parameter.branch || '';
   const note = e.parameter.note || '';
   const productInventoryJSON = e.parameter.productInventory || '[]';
-  
+
   // Parse product inventory data
   let productInventory = [];
   try {
@@ -77,7 +77,7 @@ function doPost(e) {
     return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'At least one product inventory is required' }))
       .setMimeType(ContentService.MimeType.JSON);
   }
-  
+
   // Validate that ALL products have required fields completed
   const validationErrors = [];
   productInventory.forEach(product => {

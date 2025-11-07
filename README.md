@@ -1,11 +1,11 @@
-# Inventory Report System
+# Merchandiser Report System
 
-A Google Apps Script (GAS) based inventory reporting system that captures inventory data with location tracking and geocoding capabilities.
+A Google Apps Script (GAS) based merchandiser reporting system that captures merchandiser data with location tracking and geocoding capabilities.
 
 ## Features
 
-- **Location-based Inventory Tracking**: Automatically captures GPS coordinates and converts them to readable addresses
-- **Multi-field Data Capture**: Records comprehensive inventory information including counts, expiration dates, and notes
+- **Location-based Merchandiser Tracking**: Automatically captures GPS coordinates and converts them to readable addresses
+- **Multi-field Data Capture**: Records comprehensive merchandiser information including counts, expiration dates, and notes
 - **Dynamic Dropdowns**: Load member names, areas, stores, and branches from Google Sheets
 - **Real-time Validation**: Client and server-side validation for data integrity
 - **Mobile-friendly Interface**: Responsive design optimized for mobile devices
@@ -27,8 +27,8 @@ The system creates one record per product with inventory data. Each record conta
 - **Note**: General notes
 
 ### Product-Specific Fields (per product tab)
-- **Bottle Count**: Number of inventory bottles for this product
-- **Carton Count**: Number of inventory cartons for this product
+- **Bottle Count**: Number of bottles for this product
+- **Carton Count**: Number of cartons for this product
 - **Expiration Date**: Product expiration date (calendar picker)
 - **Product Note**: Product-specific notes
 
@@ -179,6 +179,7 @@ The codebase includes:
 - **Index.html**: Client-side interface with embedded JavaScript/CSS
 - **Tests.gs**: Comprehensive test suite
 - **CLAUDE.md**: Technical documentation for developers
+- **README.md**: User documentation
 
 ## Support
 
@@ -190,4 +191,4 @@ For technical issues:
 
 ## License
 
-This project is provided as-is for inventory tracking purposes.
+This project is provided as-is for merchandiser tracking purposes.

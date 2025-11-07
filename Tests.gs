@@ -1,4 +1,4 @@
-// Unit Tests for inventory_report Google Apps Script
+// Unit Tests for Merchandiser Report Google Apps Script
 // Run these tests by executing runAllTests() function
 
 function runAllTests() {

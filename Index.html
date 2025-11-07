@@ -5,7 +5,7 @@
   <base target="_top">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-  <title>Inventory Report</title>
+  <title>Merchandiser Report</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -196,8 +196,8 @@
 
 <body>
   <div class="container">
-    <h1>Inventory Report</h1>
-    <form id="inventoryForm">
+    <h1>Merchandiser Report</h1>
+    <form id="merchandiserForm">
       <label for="name">Your Name:</label>
       <select id="name" name="name" required>
         <option value="">👤 Loading names...</option>
@@ -240,13 +240,13 @@
     </div>
 
     <div style="margin-top: 30px;">
-      <button type="submit" id="submitButton" form="inventoryForm">Register</button>
+      <button type="submit" id="submitButton" form="merchandiserForm">Register</button>
     </div>
     <div id="message"></div>
   </div>
 
   <script>
-    const form = document.getElementById('inventoryForm');
+    const form = document.getElementById('merchandiserForm');
     const messageDiv = document.getElementById('message');
     const latitudeInput = document.getElementById('latitude');
     const longitudeInput = document.getElementById('longitude');
@@ -592,7 +592,7 @@
       return productInventory;
     }
 
-    // Function to validate product inventory
+    // Function to validate product inventory data
     function validateProductInventory(productInventory) {
       const availableProducts = getAvailableProducts();
       
@@ -868,7 +868,7 @@
         // Add product inventory data
         const productInventory = collectProductData();
 
-        // Validate that at least one product has inventory
+        // Validate that at least one product has inventory data
         if (!validateProductInventory(productInventory)) {
           submitButton.disabled = false; // Re-enable button when validation fails
           return;
