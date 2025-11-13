@@ -112,13 +112,13 @@ function doPost(e) {
     branch, 
     finalLatitude, 
     finalLongitude, 
-    address, 
+    address,
     note,
     product.type,
     product.name,
-    product.bottleCount || 0, 
-    product.cartonCount || 0, 
-    product.expirationDate || '', 
+    product.bottleCount || 0,
+    product.cartonCount || 0,
+    product.expirationDate ? "'" + product.expirationDate : '',
     product.note || ''
   ]);
   
