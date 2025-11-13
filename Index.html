@@ -7,6 +7,61 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
   <title>Merchandiser Report</title>
   <style>
+    /* Login Page Styles */
+    .login-container {
+      background-color: #ffffff;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      box-sizing: border-box;
+      margin: 20px;
+    }
+
+    .login-container h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 30px;
+      font-size: 1.8em;
+    }
+
+    .login-container input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1em;
+      box-sizing: border-box;
+    }
+
+    .login-message {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 0.9em;
+    }
+
+    .login-message.error {
+      background-color: #ffebee;
+      color: #c62828;
+      border: 1px solid #ef5350;
+    }
+
+    .login-message.success {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+      border: 1px solid #66bb6a;
+    }
+
+    /* Hide/show login vs main form */
+    .hidden {
+      display: none !important;
+    }
+  </style>
+  <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
@@ -195,7 +250,19 @@
 </head>
 
 <body>
-  <div class="container">
+  <!-- Login Container -->
+  <div id="loginContainer" class="login-container">
+    <h1>Merchandiser Report Login</h1>
+    <form id="loginForm">
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" required autofocus>
+      <button type="submit" id="loginButton">Login</button>
+      <div id="loginMessage" class="login-message" style="display: none;"></div>
+    </form>
+  </div>
+
+  <!-- Main Form Container -->
+  <div id="mainContainer" class="container hidden">
     <h1>Merchandiser Report</h1>
     <form id="merchandiserForm">
       <label for="name">Your Name:</label>
@@ -246,6 +313,15 @@
   </div>
 
   <script>
+    // Login elements
+    const loginContainer = document.getElementById('loginContainer');
+    const mainContainer = document.getElementById('mainContainer');
+    const loginForm = document.getElementById('loginForm');
+    const passwordInput = document.getElementById('password');
+    const loginButton = document.getElementById('loginButton');
+    const loginMessageDiv = document.getElementById('loginMessage');
+
+    // Main form elements
     const form = document.getElementById('merchandiserForm');
     const messageDiv = document.getElementById('message');
     const latitudeInput = document.getElementById('latitude');
@@ -258,6 +334,101 @@
     let storesData = {};
     let productsData = [];
     let activeProductTab = null;
+
+    // Login Logic
+    // Check if already authenticated via sessionStorage
+    window.addEventListener('load', function() {
+      const authToken = sessionStorage.getItem('merchandiserReportAuth');
+      if (authToken) {
+        // Verify the token is still valid
+        google.script.run
+          .withSuccessHandler(function(isValid) {
+            if (isValid) {
+              // Token is valid, show main form
+              showMainForm();
+            } else {
+              // Token expired, show login
+              sessionStorage.removeItem('merchandiserReportAuth');
+              showLogin();
+            }
+          })
+          .withFailureHandler(function(error) {
+            // Error checking token, show login
+            sessionStorage.removeItem('merchandiserReportAuth');
+            showLogin();
+          })
+          .isAuthenticated(authToken);
+      } else {
+        // No token, show login
+        showLogin();
+      }
+    });
+
+    loginForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const password = passwordInput.value;
+
+      if (!password) {
+        showLoginMessage('Please enter a password', 'error');
+        return;
+      }
+
+      loginButton.disabled = true;
+      showLoginMessage('Verifying...', '');
+
+      // Verify password with server
+      google.script.run
+        .withSuccessHandler(function(sessionToken) {
+          if (sessionToken) {
+            // Store token in sessionStorage
+            sessionStorage.setItem('merchandiserReportAuth', sessionToken);
+            showLoginMessage('Login successful! Loading form...', 'success');
+
+            // Show main form
+            setTimeout(function() {
+              showMainForm();
+            }, 500);
+          } else {
+            showLoginMessage('Invalid password. Please try again.', 'error');
+            loginButton.disabled = false;
+            passwordInput.value = '';
+            passwordInput.focus();
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Login error:', error);
+          showLoginMessage('Login failed: ' + error.message, 'error');
+          loginButton.disabled = false;
+        })
+        .verifyPassword(password);
+    });
+
+    function showLogin() {
+      loginContainer.classList.remove('hidden');
+      mainContainer.classList.add('hidden');
+    }
+
+    function showMainForm() {
+      loginContainer.classList.add('hidden');
+      mainContainer.classList.remove('hidden');
+
+      // Load data for dropdowns
+      loadNames();
+      loadAreas();
+      loadStores();
+      loadProducts();
+
+      // Initially disable store and branch selects
+      storeSelect.disabled = true;
+      branchSelect.disabled = true;
+    }
+
+    function showLoginMessage(text, type) {
+      loginMessageDiv.textContent = text;
+      loginMessageDiv.className = 'login-message ' + type;
+      loginMessageDiv.style.display = 'block';
+    }
 
     // Function to load names from server
     function loadNames() {
@@ -499,17 +670,8 @@
       activeProductTab = index;
     }
 
-    // Load names, areas, stores, and products when page loads
-    window.addEventListener('load', function () {
-      loadNames();
-      loadAreas();
-      loadStores();
-      loadProducts();
-
-      // Initially disable store and branch selects
-      storeSelect.disabled = true;
-      branchSelect.disabled = true;
-    });
+    // Note: Data loading moved to showMainForm() function above
+    // This ensures data loads only after successful authentication
 
     // Function to get geolocation
     function getLocation() {
@@ -876,6 +1038,19 @@
 
         params.append('productInventory', JSON.stringify(productInventory));
 
+        // Add authentication token from sessionStorage
+        const authToken = sessionStorage.getItem('merchandiserReportAuth');
+        if (!authToken) {
+          messageDiv.textContent = 'Session expired. Please log in again.';
+          messageDiv.className = 'error';
+          // Reload page to go back to login
+          setTimeout(function() {
+            window.location.reload();
+          }, 2000);
+          return;
+        }
+        params.append('authToken', authToken);
+
         messageDiv.textContent = 'Registering...';
 
         // IMPORTANT: Replace 'YOUR_DEPLOYED_WEB_APP_URL' with your actual GAS Web App URL
@@ -891,18 +1066,18 @@
         if (data.status === 'success') {
           messageDiv.textContent = data.message;
           messageDiv.className = ''; // Success class is default (no error class)
-          
+
           // Clear form but keep Name and Area values
           const nameValue = nameSelect.value;
           const areaValue = areaSelect.value;
-          
+
           form.reset(); // Reset main form
           clearProductForms(); // Clear all product form data
-          
+
           // Restore Name and Area values
           nameSelect.value = nameValue;
           areaSelect.value = areaValue;
-          
+
           // Re-populate stores and branches based on the kept area selection
           if (areaValue) {
             populateStoresByArea();
@@ -910,6 +1085,14 @@
         } else {
           messageDiv.textContent = 'Error: ' + data.message;
           messageDiv.className = 'error'; // Add error class
+
+          // If authentication error, redirect to login
+          if (data.message && data.message.includes('Authentication failed')) {
+            sessionStorage.removeItem('merchandiserReportAuth');
+            setTimeout(function() {
+              window.location.reload();
+            }, 2000);
+          }
         }
       } catch (error) {
         console.error('Error during registration process:', error);

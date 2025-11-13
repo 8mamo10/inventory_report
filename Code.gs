@@ -6,11 +6,85 @@ function formatTimestamp(date) {
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
   const seconds = String(date.getSeconds()).padStart(2, '0');
-  
+
   return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
 }
 
+// Function to generate a session token with embedded timestamp
+function generateSessionToken() {
+  const timestamp = new Date().getTime();
+  const random = Utilities.getUuid();
+  const tokenData = timestamp + ':' + random;
+  return Utilities.base64Encode(tokenData);
+}
+
+// Function to verify password and return session token
+function verifyPassword(inputPassword) {
+  const correctPassword = PropertiesService.getScriptProperties().getProperty('Password');
+
+  if (!correctPassword) {
+    throw new Error('Password is not set in Script Properties. Please set "Password" property.');
+  }
+
+  if (inputPassword === correctPassword) {
+    // Generate session token with embedded timestamp
+    const sessionToken = generateSessionToken();
+    return sessionToken;
+  }
+
+  return null;
+}
+
+// Function to check if session token is valid
+function isAuthenticated(sessionToken) {
+  if (!sessionToken) {
+    return false;
+  }
+
+  try {
+    // Decode token to get timestamp
+    const decoded = Utilities.newBlob(Utilities.base64Decode(sessionToken)).getDataAsString();
+    const parts = decoded.split(':');
+
+    if (parts.length !== 2) {
+      return false;
+    }
+
+    const tokenTimestamp = parseInt(parts[0]);
+
+    if (isNaN(tokenTimestamp)) {
+      return false;
+    }
+
+    // Check if token is expired (24 hours)
+    const now = new Date().getTime();
+    const tokenAge = now - tokenTimestamp;
+    const maxAge = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+    if (tokenAge > maxAge || tokenAge < 0) {
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Token validation error:', error);
+    return false;
+  }
+}
+
 function doPost(e) {
+  // Verify session token from POST request
+  const authToken = e.parameter.authToken;
+
+  if (!authToken || !isAuthenticated(authToken)) {
+    return ContentService.createTextOutput(
+      JSON.stringify({
+        status: 'error',
+        message: 'Authentication failed. Please log in again.'
+      })
+    ).setMimeType(ContentService.MimeType.JSON);
+  }
+
   // Set the spreadsheet ID here
   const spreadSheetId = PropertiesService.getScriptProperties().getProperty('SpreadSheet_ID');
   if (!spreadSheetId) {
@@ -156,11 +230,9 @@ function getAddressFromCoordinates(lat, lng) {
 
 // Function for deploying as a web application (execute only once initially)
 function doGet() {
-  // This function is executed when there is a GET request
-  // Usually HTML files are provided here
-  return HtmlService.createTemplateFromFile('Index')
-    .evaluate()
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL); // Required for embedding in <iframe> etc.
+  // Serve the main Index page which includes login logic
+  return HtmlService.createHtmlOutputFromFile('Index')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 // Function to return HTML file content

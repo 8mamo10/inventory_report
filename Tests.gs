@@ -188,9 +188,13 @@ function testGetProductList() {
 function testDoPostValidInput() {
   console.log('Testing doPost with valid input...');
 
+  // Generate a valid auth token for testing
+  const validAuthToken = generateSessionToken();
+
   // Mock event object with new required fields
   const mockEvent = {
     parameter: {
+      authToken: validAuthToken,
       name: 'Test User',
       area: 'Test Area',
       latitude: '35.6762',
@@ -242,15 +246,18 @@ function testDoPostValidInput() {
 function testDoPostMissingParameters() {
   console.log('Testing doPost with missing parameters...');
 
+  // Generate a valid auth token for testing
+  const validAuthToken = generateSessionToken();
+
   const testCases = [
-    { parameter: {} }, // All missing
-    { parameter: { name: 'Test' } }, // Missing area, coordinates, store, branch, inventory fields
-    { parameter: { name: 'Test', area: 'Test Area' } }, // Missing coordinates, store, branch, inventory fields
-    { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762' } }, // Missing longitude, store, branch, inventory fields
-    { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503' } }, // Missing store, branch, inventory fields
-    { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503', store: 'Test Store' } }, // Missing branch
-    { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503', store: 'Test Store', branch: 'Test Branch' } }, // Missing product inventory
-    { parameter: { name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503', store: 'Test Store', branch: 'Test Branch', productInventory: '[]' } } // Empty product inventory
+    { parameter: { authToken: validAuthToken } }, // All missing
+    { parameter: { authToken: validAuthToken, name: 'Test' } }, // Missing area, coordinates, store, branch, inventory fields
+    { parameter: { authToken: validAuthToken, name: 'Test', area: 'Test Area' } }, // Missing coordinates, store, branch, inventory fields
+    { parameter: { authToken: validAuthToken, name: 'Test', area: 'Test Area', latitude: '35.6762' } }, // Missing longitude, store, branch, inventory fields
+    { parameter: { authToken: validAuthToken, name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503' } }, // Missing store, branch, inventory fields
+    { parameter: { authToken: validAuthToken, name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503', store: 'Test Store' } }, // Missing branch
+    { parameter: { authToken: validAuthToken, name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503', store: 'Test Store', branch: 'Test Branch' } }, // Missing product inventory
+    { parameter: { authToken: validAuthToken, name: 'Test', area: 'Test Area', latitude: '35.6762', longitude: '139.6503', store: 'Test Store', branch: 'Test Branch', productInventory: '[]' } } // Empty product inventory
   ];
 
   testCases.forEach((testCase, index) => {
@@ -291,8 +298,12 @@ function testDoPostMissingParameters() {
 function testDoPostWithStoreAndBranch() {
   console.log('Testing doPost with store and branch...');
 
+  // Generate a valid auth token for testing
+  const validAuthToken = generateSessionToken();
+
   const validEvent = {
     parameter: {
+      authToken: validAuthToken,
       name: 'Test User',
       area: 'Main Area',
       latitude: '35.6762',
@@ -321,8 +332,12 @@ function testDoPostWithStoreAndBranch() {
 function testDoPostInvalidCoordinates() {
   console.log('Testing doPost with invalid coordinates...');
 
+  // Generate a valid auth token for testing
+  const validAuthToken = generateSessionToken();
+
   const mockEvent = {
     parameter: {
+      authToken: validAuthToken,
       name: 'Test User',
       area: 'Test Area',
       latitude: 'invalid',
@@ -366,8 +381,12 @@ function testDoGet() {
 
 // Helper function to create test data
 function createTestEvent(name, area, lat, lng, store, branch, note, productType, productName, bottleCount, cartonCount, expirationDate, productNote) {
+  // Generate a valid auth token for testing
+  const validAuthToken = generateSessionToken();
+
   return {
     parameter: {
+      authToken: validAuthToken,
       name: name || '',
       area: area || 'Test Area',
       latitude: lat || '',
@@ -406,9 +425,13 @@ function setupTestProperties() {
 function testAllProductsValidation() {
   console.log('Testing all products validation...');
 
+  // Generate a valid auth token for testing
+  const validAuthToken = generateSessionToken();
+
   // Test case where only some products have data (should fail)
   const partialEvent = {
     parameter: {
+      authToken: validAuthToken,
       name: 'Test User',
       area: 'Test Area',
       latitude: '35.6762',
@@ -445,6 +468,7 @@ function testAllProductsValidation() {
   // Test case with zero inventory (should pass)
   const zeroInventoryEvent = {
     parameter: {
+      authToken: validAuthToken,
       name: 'Test User',
       area: 'Test Area',
       latitude: '35.6762',
